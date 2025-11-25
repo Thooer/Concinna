@@ -1,8 +1,9 @@
 module;
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 module Prm.Window;
-
+import Prm.Element;
+import Prm.Flow;
+import Prm.Paradigm;
 import :Window;
 
 namespace Prm {

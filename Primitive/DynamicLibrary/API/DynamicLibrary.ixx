@@ -2,6 +2,10 @@
 module;
 export module Prm.DynamicLibrary;
 
+import Prm.Element;
+import Prm.Flow;
+import Prm.Text;
+import Prm.Paradigm;
 import Prm.Platform; // 使用 PlatformAPI vtable 进行库操作
 
 export namespace Prm {

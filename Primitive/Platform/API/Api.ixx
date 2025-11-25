@@ -2,6 +2,11 @@
 module;
 export module Prm.Platform:Api;
 
+import Prm.Element;
+import Prm.Flow;
+import Prm.Paradigm;
+import Prm.Text;
+
 import Prm.IO;
 import Prm.Threading;
 import Prm.Ownership;

@@ -36,7 +36,7 @@ namespace Prm {
         const Int64 t = QpcNow();
         // 转换为纳秒： (t * 1e9) / freq
         const Int64 ns = static_cast<Int64>((t * 1'000'000'000ll) / g_qpcFreq);
-        return static_cast<Time::TimePoint>(ns);
+        return static_cast<TimePoint>(ns);
     }
 
     void SleepMs(UInt32 milliseconds) noexcept {

@@ -1,5 +1,8 @@
 module;
 export module Prm.File;
+import Prm.Element;
+import Prm.Flow;
+import Prm.Text;
 
 export namespace Prm {
     export class FilePath {

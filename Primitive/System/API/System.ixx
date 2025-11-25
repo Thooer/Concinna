@@ -1,4 +1,6 @@
 export module Prm.System;
+import Prm.Element;
+import Prm.Flow;
 export import :Topology;
 
 export namespace Prm {

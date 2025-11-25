@@ -1,6 +1,9 @@
 // Platform.Memory — 平台层内存接口（无导出宏，纯接口）
 module;
 export module Prm.Ownership:Memory;
+import Prm.Element;
+import Prm.Flow;
+import Prm.Paradigm;
 
 export namespace Prm {
     

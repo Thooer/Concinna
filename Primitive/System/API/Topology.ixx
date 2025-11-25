@@ -1,4 +1,5 @@
 export module Prm.System:Topology;
+import Prm.Element;
 
 export namespace Prm {
     struct Topology {

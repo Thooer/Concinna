@@ -1,5 +1,9 @@
 module;
 export module Prm.IO:FileSystem;
+import Prm.Element;
+import Prm.Flow;
+import Prm.Text;
+import Prm.Paradigm;
 
 export namespace Prm {
     struct FileHandleTag;
