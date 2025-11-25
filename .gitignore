@@ -1,0 +1,22 @@
+# Build artifacts
+build/
+.build/
+.idea/
+build/**
+out/
+
+# CMake/VS generated files
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+*.vcxproj*
+*.sln
+*.tlog
+
+# Object/library/binaries
+*.obj
+*.lib
+*.exe
+
+# Logs in source tree (legacy)
+FlowIR_Steps.txt

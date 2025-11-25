@@ -1,0 +1,2 @@
+API(Primitive.Meta ${CMAKE_CURRENT_SOURCE_DIR}/API LINK Element)
+Build(Meta TYPE STATIC)

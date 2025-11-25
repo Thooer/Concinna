@@ -1,0 +1,98 @@
+## 游戏引擎开发
+
+### **1. 哲学**
+
+最大控制力和灵活性。
+可维护性：不主动追求MVP，而是优先考虑代码质量，和后期可扩展性。
+追求业界前沿实现，如有必要可创新。
+
+### **2. 目录**
+
+```
+Concinna/
+├── .trae/                      # 项目规则与屏蔽配置
+│   └── rules/project_rules.md  # 本文档，核心开发规范
+├── Build/                      # 构建输出目录
+├── Deprecated/                 # 已废弃代码(禁止修改、使用、构建、借鉴、查看)
+├── Docs/                       # 文档
+├── Primitive/                  # `Prm::`：原语层
+├── Capability/                 # `Cap::`：能力层
+├── System/                     # `Sys::`：子系统层
+├── Hub/                        # `Hub::`：引擎版本管理
+├── Engine/                     # `Eng::`：引擎层
+├── Dev/                        # `Dev::`：编辑器工具层
+├── Editor/                     # `Edt::`：编辑器层
+├── Plugins/                    # `Plg::`：插件层
+├── Projects/                   # `Pjt::`：项目层
+├── ThirdParty/                 # `Thd::`：第三方库
+│   └── Tracy                   # 性能分析工具
+├── Scripts/                    # 脚本层
+├── Tools/                      # 自研开发工具
+└── 配置文件
+```
+
+所有模块遵循统一结构，确保一致性：
+
+```
+<ModuleName>/
+├── API/                        # (必选)接口，禁止使用伞头文件
+├── Impl/                       # (可选)实现目录
+│   └── <ImplName>/             #       (可选)接口的实现
+├── Sample/                     # (可选)示例与测试
+│   └── <SampleName>/           #       (必选)示例/测试
+├── SubModule/                  # (可选)嵌套子模块
+│   └── <SubmoduleName>/        #       (嵌套)遵循标准结构
+├── Docs/                       # (可选)文档
+├── README.md                   # 模块设计与使用说明
+└── CMakeLists.txt              # 模块构建配置
+```
+
+### **3. 构建规则**
+当前平台：Windows平台
+- **统一管理**：模块根目录CMakeLists.txt统一管理接口、实现和样例
+- **模块化导入**：仅使用 `import <Module>`，禁止 `#include` 和跨模块导入分区
+- **构建优化**：Windows使用Visual Studio生成器
+- **构建函数简述**：
+  - `API(<BuildName> <API_DIR> [LINK <deps>])` 定义接口文件集并记录依赖；第一个参数为构建名称，例如 `Primitive.System`
+  - `Impl(<BuildName.Backend> <IMPL_ROOT> [LINK <deps>])` 注册具体后端实现；例如 `Primitive.System.Windows`
+  - `Build(<Target> TYPE STATIC|SHARED BACKEND <BuildName.Backend> [LINK <deps>])` 创建目标并按“全名后端”选择实现；必须使用完整名
+  - `Sample(<Name> <Sample_DIR> [OPTION <flag>] [LINK <deps>])` 定义样例可执行并可通过开关控制是否构建
+  - `Collect(<OUT_VAR> <DIR>)` 收集目录下的 C++ 模块源文件（`.ixx/.cppm`）用于复用
+
+### **4. 语言规范**
+除了少部分标准库，图形学API，文件编解码，编程语言交互库，深度学习，不依赖任何外部库。
+#### **4.1 核心原则**
+- **移动优先**：默认可移动、不可拷贝，拷贝需显式允许
+- **RAII管理**：作用域即生命周期，严禁资源泄漏
+- **类型安全**：禁止隐式转换、强类型枚举、统一Result/Status返回值
+- **性能友好**：`noexcept`默认、值返回优化、完美转发支持
+
+#### **4.2 命名规范**
+- **类型/方法**：`PascalCase`，常量`CONSTANT`，局部变量`kCONSTANT`
+- **成员变量**：公开`m_`，私有`t_`，接口`I`，模板`T`
+- **异步接口**：异步`Async`，线程安全`Safe`，非阻塞`Try`
+- **命名空间**：最多两层，如`Foundation::Memory`
+
+#### **4.3 模块导入**
+- **模块化导入**:仅使用 `import <Module>`，禁止 `#include`
+- **标准库隔离**:Primitive以外的模块禁止使用，测试文件除外
+
+
+### **5. 项目简介**
+项目内部：
+Primitive：C++语义，编程范式，平台差异封装，提供各种功能的原语（不牺牲性能，最大灵活度的薄封装）
+Capability：提供各种功能的能力（如内存分配、并发、IO等），不直接涉及引擎语义
+System：子系统封装但是不涉及引擎语义，比如JobSystem
+Hub：引擎版本管理，负责所有内容的安装、启动、更新、卸载等
+Engine：引擎层，负责引擎的运行时，包括场景管理、渲染、物理模拟、动画等
+Dev：编辑器工具层，负责编辑器的运行时，包括场景编辑、资源管理、插件开发等
+Editor：编辑器层，负责编辑器的用户界面、交互、插件系统等
+Plugin：插件层，专门存储插件的位置。
+Project：项目层，专门存储项目的位置。
+项目外部：
+Script：脚本，负责脚本的运行时，包括脚本解释器、脚本库等
+Tools：自研开发工具，负责项目的开发、维护、测试等
+ThirdParty：第三方库，比如图形学API
+
+以上所有内容都是目录的语义，无逻辑区分，只承担命名空间的作用
+真正的模块在对应的目录下，扁平化分布。

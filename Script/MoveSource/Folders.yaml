@@ -1,0 +1,16 @@
+# 文件夹范围配置
+.trae:
+  - rules
+  
+Primitive:
+  # - Element
+  # - Flow
+  # - Meta
+  # - Ownership
+  # - Paradigm
+  # - Semantics
+  # - Sync
+  # - Text
+# Editor: []
+# Hub: []
+# Tools:

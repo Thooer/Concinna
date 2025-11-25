@@ -1,0 +1,5 @@
+API(Primitive.Time ${CMAKE_CURRENT_SOURCE_DIR}/Interface LINK Prm)
+Impl(Primitive.Time.Core ${CMAKE_CURRENT_SOURCE_DIR}/Backends LINK Platform)
+Build(Time TYPE STATIC BACKEND Primitive.Time.Core)
+Sample(Time.StopwatchDemo ${CMAKE_CURRENT_SOURCE_DIR}/Samples/StopwatchDemo OPTION BUILD_TIME_STOPWATCH LINK "Prm;Time;Platform")
+Sample(Time.PrecisionBench ${CMAKE_CURRENT_SOURCE_DIR}/Samples/PrecisionBench OPTION BUILD_TIME_PRECISION LINK "Prm;Time;Platform")

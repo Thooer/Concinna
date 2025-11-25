@@ -1,0 +1,5 @@
+API(Primitive.System ${CMAKE_CURRENT_SOURCE_DIR}/Interface LINK Prm)
+Impl(Primitive.System.Windows ${CMAKE_CURRENT_SOURCE_DIR}/Backends LINK Platform)
+Impl(Primitive.System.Noop ${CMAKE_CURRENT_SOURCE_DIR}/Backends LINK Platform)
+Build(System TYPE STATIC BACKEND Primitive.System.Windows)
+Sample(System.TopoDump ${CMAKE_CURRENT_SOURCE_DIR}/Samples/TopoDump OPTION BUILD_SYSTEM_TOPO LINK "Prm;Platform;System")
