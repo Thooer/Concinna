@@ -1,13 +1,12 @@
 module;
-module Platform;
+module Prm.Threading;
 
-import Prm;
 import :Threading;
 
 extern "C" __declspec(dllimport) void* GetModuleHandleA(const char* lpModuleName);
 extern "C" __declspec(dllimport) void* GetProcAddress(void* hModule, const char* lpProcName);
 
-namespace Platform {
+namespace Prm {
     
 
     static int CallWaitOnAddress(void* Address, void* CompareAddress, size_t AddressSize, unsigned long dwMilliseconds);

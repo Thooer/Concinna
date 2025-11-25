@@ -1,10 +1,8 @@
 // Platform.Window — 窗口与消息泵原语（纯原语，无解释）
 module;
-export module Platform:Window;
+export module Prm.Window;
 
-import Prm;
-
-export namespace Platform {
+export namespace Prm {
     
 
     struct WindowHandleTag;

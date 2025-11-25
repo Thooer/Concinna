@@ -1,9 +1,8 @@
-module Platform;
+module Prm.Debug;
 
-import Prm;
 import :Debug;
 
-using namespace Platform;
+using namespace Prm;
 
 extern "C" __declspec(dllimport) void OutputDebugStringA(const char*);
 
@@ -12,4 +11,3 @@ Status Debug::Output(StringView text) noexcept {
     OutputDebugStringA(reinterpret_cast<const char*>(text.data()));
     return Ok(StatusDomain::System());
 }
-

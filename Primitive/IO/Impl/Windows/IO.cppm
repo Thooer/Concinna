@@ -1,11 +1,10 @@
 // Windows 后端：实现 FileSystem 的 Stdout/Stderr 与 Write
 module;
-module Platform;
+module Prm.IO;
 
-import Prm;
 import :FileSystem;
 
-namespace Platform {
+namespace Prm {
     
 
     // Win32 基础 API（避免包含 <windows.h>）
@@ -236,6 +235,15 @@ namespace Platform {
         const int ok = FlushViewOfFile(address, static_cast<unsigned long>(size));
         return ok ? Ok(StatusDomain::System()) : Err(StatusDomain::System(), StatusCode::Failed);
     }
+
+    Status File::ReadAsync(FileHandle, Span<Byte, DynamicExtent>, UInt64, void*) noexcept {
+        return Err(StatusDomain::System(), StatusCode::Unsupported);
+    }
+    Status File::WriteAsync(FileHandle, Span<const Byte, DynamicExtent>, UInt64, void*) noexcept {
+        return Err(StatusDomain::System(), StatusCode::Unsupported);
+    }
+    Status File::CancelAsync(FileHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Expect<bool> File::PollAsync(FileHandle, UInt32) noexcept { return Expect<bool>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
 
     Expect<DirectoryFindHandle> Directory::FindFirst(StringView pattern, DirectoryEntry& out) noexcept {
         if (pattern.size() == 0) return Expect<DirectoryFindHandle>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));

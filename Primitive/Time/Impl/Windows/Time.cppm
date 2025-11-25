@@ -1,10 +1,9 @@
 module;
-module Platform;
+module Prm.Time;
 
-import Prm;
 import :Time;
 
-namespace Platform {
+namespace Prm {
     
 
     // Win32 高精度计时 API（避免包含 windows.h）
@@ -15,7 +14,7 @@ namespace Platform {
     // 频率缓存：首次调用 Now() 时查询并缓存
     static Int64 g_qpcFreq = 0; // ticks per second
 
-    void Time::Init() noexcept {
+    void Init() noexcept {
         if (g_qpcFreq != 0) return;
         Int64 f = 0;
         const int ok = QueryPerformanceFrequency(&f);
@@ -28,7 +27,7 @@ namespace Platform {
         return t;
     }
 
-    Time::TimePoint Time::Now() noexcept {
+    TimePoint Now() noexcept {
         if (g_qpcFreq == 0) {
             Int64 f = 0;
             const int ok = QueryPerformanceFrequency(&f);
@@ -40,7 +39,7 @@ namespace Platform {
         return static_cast<Time::TimePoint>(ns);
     }
 
-    void Time::SleepMs(UInt32 milliseconds) noexcept {
+    void SleepMs(UInt32 milliseconds) noexcept {
         Sleep(static_cast<unsigned long>(milliseconds));
     }
 

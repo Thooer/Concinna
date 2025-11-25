@@ -1,10 +1,9 @@
 module;
-module Platform;
+module Prm.Threading;
 
-import Prm
 import :Threading;
 
-namespace Platform {
+namespace Prm {
     
 
     Expect<ThreadHandle> ThreadCreate(ThreadFunc, void*) noexcept {

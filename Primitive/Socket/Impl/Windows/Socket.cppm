@@ -1,10 +1,9 @@
 module;
-module Platform;
+module Prm.Socket;
 
-import Prm;
 import :Socket;
 
-namespace Platform {
+namespace Prm {
     extern "C" __declspec(dllimport) int WSAStartup(unsigned short, void*);
     extern "C" __declspec(dllimport) int WSACleanup(void);
     extern "C" __declspec(dllimport) unsigned long long socket(int, int, int);

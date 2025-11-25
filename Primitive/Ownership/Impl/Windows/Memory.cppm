@@ -1,12 +1,10 @@
 module;
 
-module Platform;
+module Prm.Ownership;
 
-import Prm
 import :Memory;
 
-
-using namespace Platform;
+using namespace Prm;
  
 
     // Win32 虚拟内存 API（避免 windows.h）
@@ -51,13 +49,13 @@ using namespace Platform;
     static constexpr unsigned long PAGE_EXECUTE_READ      = 0x00000020ul;
     static constexpr unsigned long PAGE_EXECUTE_READWRITE = 0x00000040ul;
 
-    static unsigned long ToWinProtect(Memory::PageProtection p) noexcept {
+    static unsigned long ToWinProtect(PageProtection p) noexcept {
         switch (p) {
-            case Memory::PageProtection::NoAccess:          return PAGE_NOACCESS;
-            case Memory::PageProtection::ReadOnly:          return PAGE_READONLY;
-            case Memory::PageProtection::ReadWrite:         return PAGE_READWRITE;
-            case Memory::PageProtection::ExecuteRead:       return PAGE_EXECUTE_READ;
-            case Memory::PageProtection::ExecuteReadWrite:  return PAGE_EXECUTE_READWRITE;
+            case PageProtection::NoAccess:          return PAGE_NOACCESS;
+            case PageProtection::ReadOnly:          return PAGE_READONLY;
+            case PageProtection::ReadWrite:         return PAGE_READWRITE;
+            case PageProtection::ExecuteRead:       return PAGE_EXECUTE_READ;
+            case PageProtection::ExecuteReadWrite:  return PAGE_EXECUTE_READWRITE;
             default:                                        return PAGE_READWRITE;
         }
     }
@@ -74,70 +72,68 @@ using namespace Platform;
         return static_cast<USize>(si.dwAllocationGranularity ? si.dwAllocationGranularity : 64 * 1024u);
     }
 
-    // Out-of-line implementations for Platform::Memory::VirtualMemory
-    Expect<void*> Platform::Memory::VirtualMemory::Reserve(USize size) noexcept {
+    // Out-of-line implementations for Prm::VirtualMemory
+    Expect<void*> VirtualMemory::Reserve(USize size) noexcept {
         const unsigned long prot = PAGE_NOACCESS; // 仅保留地址空间
         void* p = VirtualAlloc(nullptr, static_cast<UInt64>(size), MEM_RESERVE, prot);
-        if (!p) return Expect<void*>::Err(MemErrWithOs(Memory::MemoryError::ReserveFailed, GetLastError()));
+        if (!p) return Expect<void*>::Err(MemErrWithOs(MemoryError::ReserveFailed, GetLastError()));
         return Expect<void*>::Ok(p);
     }
 
-    Status Platform::Memory::VirtualMemory::Commit(void* base, USize size, Memory::PageProtection protection) noexcept {
-        if (!base || size == 0) return MemErr(Memory::MemoryError::InvalidArgument);
+    Status VirtualMemory::Commit(void* base, USize size, PageProtection protection) noexcept {
+        if (!base || size == 0) return MemErr(MemoryError::InvalidArgument);
         const unsigned long prot = ToWinProtect(protection);
         void* p = VirtualAlloc(base, static_cast<UInt64>(size), MEM_COMMIT, prot);
-        return p ? Ok(StatusDomain::System()) : MemErrWithOs(Memory::MemoryError::CommitFailed, GetLastError());
+        return p ? Ok(StatusDomain::System()) : MemErrWithOs(MemoryError::CommitFailed, GetLastError());
     }
 
-    Status Platform::Memory::VirtualMemory::Protect(void* base, USize size, Memory::PageProtection newProtection) noexcept {
-        if (!base || size == 0) return MemErr(Memory::MemoryError::InvalidArgument);
+    Status VirtualMemory::Protect(void* base, USize size, PageProtection newProtection) noexcept {
+        if (!base || size == 0) return MemErr(MemoryError::InvalidArgument);
         unsigned long oldProt = 0;
         const unsigned long prot = ToWinProtect(newProtection);
         const int ok = VirtualProtect(base, static_cast<UInt64>(size), prot, &oldProt);
-        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(Memory::MemoryError::ProtectFailed, GetLastError());
+        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(MemoryError::ProtectFailed, GetLastError());
     }
 
-    Status Platform::Memory::VirtualMemory::Decommit(void* base, USize size) noexcept {
-        if (!base || size == 0) return MemErr(Memory::MemoryError::InvalidArgument);
+    Status VirtualMemory::Decommit(void* base, USize size) noexcept {
+        if (!base || size == 0) return MemErr(MemoryError::InvalidArgument);
         const int ok = VirtualFree(base, static_cast<unsigned long>(size), MEM_DECOMMIT);
-        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(Memory::MemoryError::DecommitFailed, GetLastError());
+        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(MemoryError::DecommitFailed, GetLastError());
     }
 
-    Status Platform::Memory::VirtualMemory::Release(void* base) noexcept {
-        if (!base) return MemErr(Memory::MemoryError::InvalidArgument);
+    Status VirtualMemory::Release(void* base) noexcept {
+        if (!base) return MemErr(MemoryError::InvalidArgument);
         const int ok = VirtualFree(base, 0u, MEM_RELEASE);
-        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(Memory::MemoryError::ReleaseFailed, GetLastError());
+        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(MemoryError::ReleaseFailed, GetLastError());
     }
 
-    USize Platform::Memory::VirtualMemory::PageSize() noexcept { return QueryPageSize(); }
-    USize Platform::Memory::VirtualMemory::AllocationGranularity() noexcept { return QueryAllocationGranularity(); }
+    USize VirtualMemory::PageSize() noexcept { return QueryPageSize(); }
+    USize VirtualMemory::AllocationGranularity() noexcept { return QueryAllocationGranularity(); }
 
-    Expect<USize> Platform::Memory::VirtualMemory::LargePageSize() noexcept {
+    Expect<USize> VirtualMemory::LargePageSize() noexcept {
         const UInt64 lp = GetLargePageMinimum();
         if (lp == 0ull) {
-            return Expect<USize>::Err(MemErr(Memory::MemoryError::LargePagesNotSupported));
+            return Expect<USize>::Err(MemErr(MemoryError::LargePagesNotSupported));
         }
         return Expect<USize>::Ok(static_cast<USize>(lp));
     }
 
-    Expect<void*> Platform::Memory::VirtualMemory::ReserveEx(USize size, UInt32 numaNodeId, bool useLargePages) noexcept {
+    Expect<void*> VirtualMemory::ReserveEx(USize size, UInt32 numaNodeId, bool useLargePages) noexcept {
         void* process = GetCurrentProcess();
-        if (!process) return Expect<void*>::Err(MemErr(Memory::MemoryError::QueryFailed));
+        if (!process) return Expect<void*>::Err(MemErr(MemoryError::QueryFailed));
         unsigned long allocFlags = MEM_RESERVE;
         unsigned long prot = PAGE_NOACCESS;
         UInt64 requestSize = static_cast<UInt64>(size);
         if (useLargePages) {
             const UInt64 lp = GetLargePageMinimum();
-            if (lp == 0) {
-                return Expect<void*>::Err(MemErr(Memory::MemoryError::LargePagesNotSupported));
-            }
+            if (lp == 0) { return Expect<void*>::Err(MemErr(MemoryError::LargePagesNotSupported)); }
             allocFlags |= MEM_COMMIT | MEM_LARGE_PAGES;
             prot = PAGE_READWRITE; // 大页必须提交且可访问
             const UInt64 mask = lp - 1ull;
             requestSize = (requestSize + mask) & ~mask;
         }
         void* p = VirtualAllocExNuma(process, nullptr, requestSize, allocFlags, prot, static_cast<unsigned long>(numaNodeId));
-        if (!p) return Expect<void*>::Err(MemErrWithOs(Memory::MemoryError::ReserveFailed, GetLastError()));
+        if (!p) return Expect<void*>::Err(MemErrWithOs(MemoryError::ReserveFailed, GetLastError()));
         return Expect<void*>::Ok(p);
     }
 
@@ -145,50 +141,45 @@ using namespace Platform;
     extern "C" __declspec(dllimport) void* HeapCreate(unsigned long flOptions, UInt64 dwInitialSize, UInt64 dwMaximumSize);
     extern "C" __declspec(dllimport) int   HeapDestroy(void* hHeap);
 
-    Expect<Memory::HeapHandle> Platform::Memory::Heap::Create() noexcept {
+    Expect<HeapHandle> Heap::Create() noexcept {
         void* h = HeapCreate(0u, 0ull, 0ull);
-        if (!h) return Expect<Memory::HeapHandle>::Err(MemErrWithOs(Memory::MemoryError::HeapCreateFailed, GetLastError()));
-        return Expect<Memory::HeapHandle>::Ok(Memory::HeapHandle{h});
+        if (!h) return Expect<HeapHandle>::Err(MemErrWithOs(MemoryError::HeapCreateFailed, GetLastError()));
+        return Expect<HeapHandle>::Ok(HeapHandle{h});
     }
 
-    Status Platform::Memory::Heap::Destroy(Memory::HeapHandle h) noexcept {
-        if (!h.Get()) return MemErr(Memory::MemoryError::InvalidArgument);
+    Status Heap::Destroy(HeapHandle h) noexcept {
+        if (!h.Get()) return MemErr(MemoryError::InvalidArgument);
         const int ok = HeapDestroy(h.Get());
-        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(Memory::MemoryError::HeapDestroyFailed, GetLastError());
+        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(MemoryError::HeapDestroyFailed, GetLastError());
     }
 
-    Memory::HeapHandle Platform::Memory::Heap::GetProcessDefault() noexcept {
-        return Memory::HeapHandle{GetProcessHeap()};
+    HeapHandle Heap::GetProcessDefault() noexcept { return HeapHandle{GetProcessHeap()}; }
     }
 
-    Expect<void*> Platform::Memory::Heap::AllocRaw(Memory::HeapHandle h, USize size) noexcept {
-        if (!h.Get() || size == 0) return Expect<void*>::Err(MemErr(Memory::MemoryError::InvalidArgument));
+    Expect<void*> Heap::AllocRaw(HeapHandle h, USize size) noexcept {
+        if (!h.Get() || size == 0) return Expect<void*>::Err(MemErr(MemoryError::InvalidArgument));
         void* p = HeapAlloc(h.Get(), 0u, static_cast<UInt64>(size));
-        if (!p) return Expect<void*>::Err(MemErrWithOs(Memory::MemoryError::HeapAllocFailed, GetLastError()));
+        if (!p) return Expect<void*>::Err(MemErrWithOs(MemoryError::HeapAllocFailed, GetLastError()));
         return Expect<void*>::Ok(p);
     }
 
-    Status Platform::Memory::Heap::FreeRaw(Memory::HeapHandle h, void* p) noexcept {
-        if (!h.Get() || !p) return MemErr(Memory::MemoryError::InvalidArgument);
+    Status Heap::FreeRaw(HeapHandle h, void* p) noexcept {
+        if (!h.Get() || !p) return MemErr(MemoryError::InvalidArgument);
         const int ok = HeapFree(h.Get(), 0u, p);
-        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(Memory::MemoryError::HeapFreeFailed, GetLastError());
+        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(MemoryError::HeapFreeFailed, GetLastError());
     }
 
-    Expect<void*> Platform::Memory::Heap::Alloc(Memory::HeapHandle h, USize size, USize alignment) noexcept {
-        if (!h.Get() || size == 0) return Expect<void*>::Err(MemErr(Memory::MemoryError::InvalidArgument));
-        if (alignment == 0 || (alignment & (alignment - 1)) != 0) {
-            return Expect<void*>::Err(MemErr(Memory::MemoryError::AlignmentNotPowerOfTwo));
-        }
-        if (alignment > Platform::Memory::Heap::MaximumAlignment()) {
-            return Expect<void*>::Err(MemErr(Memory::MemoryError::AlignmentTooLarge));
-        }
+    Expect<void*> Heap::Alloc(HeapHandle h, USize size, USize alignment) noexcept {
+        if (!h.Get() || size == 0) return Expect<void*>::Err(MemErr(MemoryError::InvalidArgument));
+        if (alignment == 0 || (alignment & (alignment - 1)) != 0) { return Expect<void*>::Err(MemErr(MemoryError::AlignmentNotPowerOfTwo)); }
+        if (alignment > Heap::MaximumAlignment()) { return Expect<void*>::Err(MemErr(MemoryError::AlignmentTooLarge)); }
         const USize extra = alignment - 1 + sizeof(void*);
         const UInt64 req = static_cast<UInt64>(size) + static_cast<UInt64>(extra);
         if (req < static_cast<UInt64>(size)) {
-            return Expect<void*>::Err(MemErr(Memory::MemoryError::OutOfMemory));
+            return Expect<void*>::Err(MemErr(MemoryError::OutOfMemory));
         }
         void* raw = HeapAlloc(h.Get(), 0u, req);
-        if (!raw) return Expect<void*>::Err(MemErrWithOs(Memory::MemoryError::HeapAllocFailed, GetLastError()));
+        if (!raw) return Expect<void*>::Err(MemErrWithOs(MemoryError::HeapAllocFailed, GetLastError()));
         uintptr_t base = reinterpret_cast<uintptr_t>(raw) + sizeof(void*);
         uintptr_t aligned = (base + (alignment - 1)) & ~(alignment - 1);
         void** marker = reinterpret_cast<void**>(aligned);
@@ -196,15 +187,15 @@ using namespace Platform;
         return Expect<void*>::Ok(reinterpret_cast<void*>(aligned));
     }
 
-    Status Platform::Memory::Heap::Free(Memory::HeapHandle h, void* p) noexcept {
-        if (!h.Get() || !p) return MemErr(Memory::MemoryError::InvalidArgument);
+    Status Heap::Free(HeapHandle h, void* p) noexcept {
+        if (!h.Get() || !p) return MemErr(MemoryError::InvalidArgument);
         void** marker = reinterpret_cast<void**>(p);
         void* raw = marker[-1];
         const int ok = HeapFree(h.Get(), 0u, raw);
         return ok ? Ok(StatusDomain::System()) : MemErrWithOs(Memory::MemoryError::HeapFreeFailed, GetLastError());
     }
 
-    USize Platform::Memory::Heap::MaximumAlignment() noexcept {
+    USize Heap::MaximumAlignment() noexcept {
         // 建议上限：使用系统分配粒度以避免过度额外开销
         return QueryAllocationGranularity();
     }

@@ -1,22 +1,21 @@
-module Platform;
+module Prm.Platform;
 
-import Prm;
 import :Api;
-import :FileSystem;
-import :Threading;
-import :Memory;
-import :System;
-import :Time;
-import :Window;
-import :Socket;
-import :Input;
-import :Audio;
-import :Debug;
-import :Clipboard;
-import :File;
+import Prm.IO;
+import Prm.Threading;
+import Prm.Ownership;
+import Prm.System;
+import Prm.Time;
+import Prm.Window;
+import Prm.Socket;
+import Prm.Input;
+import Prm.Audio;
+import Prm.Debug;
+import Prm.Clipboard;
+import Prm.File;
 
 
-using namespace Platform;
+using namespace Prm;
 
 static const PlatformAPI g_platformAPI_noop = []() noexcept {
     PlatformAPI api{};
@@ -65,22 +64,22 @@ static const PlatformAPI g_platformAPI_noop = []() noexcept {
     api.threading.EventSignal   = &EventSignal;
     api.threading.EventReset    = &EventReset;
 
-    api.memory.VirtualReserve            = &Platform::Memory::VirtualMemory::Reserve;
-    api.memory.VirtualCommit             = &Platform::Memory::VirtualMemory::Commit;
-    api.memory.VirtualDecommit           = &Platform::Memory::VirtualMemory::Decommit;
-    api.memory.VirtualRelease            = &Platform::Memory::VirtualMemory::Release;
-    api.memory.VirtualPageSize           = &Platform::Memory::VirtualMemory::PageSize;
-    api.memory.VirtualAllocationGranularity = &Platform::Memory::VirtualMemory::AllocationGranularity;
-    api.memory.LargePageSize             = &Platform::Memory::VirtualMemory::LargePageSize;
-    api.memory.Protect                   = &Platform::Memory::VirtualMemory::Protect;
-    api.memory.VirtualReserveEx          = &Platform::Memory::VirtualMemory::ReserveEx;
+    api.memory.VirtualReserve            = &VirtualMemory::Reserve;
+    api.memory.VirtualCommit             = &VirtualMemory::Commit;
+    api.memory.VirtualDecommit           = &VirtualMemory::Decommit;
+    api.memory.VirtualRelease            = &VirtualMemory::Release;
+    api.memory.VirtualPageSize           = &VirtualMemory::PageSize;
+    api.memory.VirtualAllocationGranularity = &VirtualMemory::AllocationGranularity;
+    api.memory.LargePageSize             = &VirtualMemory::LargePageSize;
+    api.memory.Protect                   = &VirtualMemory::Protect;
+    api.memory.VirtualReserveEx          = &VirtualMemory::ReserveEx;
 
-    api.memory.HeapCreate           = &Platform::Memory::Heap::Create;
-    api.memory.HeapDestroy          = &Platform::Memory::Heap::Destroy;
-    api.memory.HeapGetProcessDefault= &Platform::Memory::Heap::GetProcessDefault;
-    api.memory.HeapAlloc            = &Platform::Memory::Heap::Alloc;
-    api.memory.HeapFree             = &Platform::Memory::Heap::Free;
-    api.memory.HeapMaximumAlignment = &Platform::Memory::Heap::MaximumAlignment;
+    api.memory.HeapCreate           = &Heap::Create;
+    api.memory.HeapDestroy          = &Heap::Destroy;
+    api.memory.HeapGetProcessDefault= &Heap::GetProcessDefault;
+    api.memory.HeapAlloc            = &Heap::Alloc;
+    api.memory.HeapFree             = &Heap::Free;
+    api.memory.HeapMaximumAlignment = &Heap::MaximumAlignment;
 
     api.system.Kernel           = &SystemInfo::Kernel;
     api.system.Cpu              = &SystemInfo::Cpu;
@@ -92,8 +91,8 @@ static const PlatformAPI g_platformAPI_noop = []() noexcept {
     api.system.EnumerateDisplays= &Device::EnumerateDisplays;
     api.system.CaptureStackTrace= &CaptureStackTrace;
 
-    api.time.Now            = &Time::Now;
-    api.time.SleepMs        = &Time::SleepMs;
+    api.time.Now            = &Now;
+    api.time.SleepMs        = &SleepMs;
     api.time.WallNow        = &WallClock::Now;
     api.time.WallUtcNow     = &WallClock::UtcNow;
 

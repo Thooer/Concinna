@@ -1,9 +1,7 @@
-module Platform;
+module Prm.Audio;
 
-import Prm;
 import :Audio;
 
-using namespace Platform;
+using namespace Prm;
 
 Expect<USize> Audio::EnumerateDevices(Span<AudioDevice, DynamicExtent>) noexcept { return Expect<USize>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
-

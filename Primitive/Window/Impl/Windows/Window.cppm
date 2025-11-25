@@ -1,17 +1,16 @@
 module;
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-module Platform;
+module Prm.Window;
 
-import Prm;
 import :Window;
 
-namespace Platform {
+namespace Prm {
     
 
     // ---- WNDCLASS 与 MSG 的最小定义 ----
     using WndProcFn = Int64(__stdcall*)(void*, unsigned int, UInt64, Int64);
-    static Platform::WndProcCallback g_userWndProc{nullptr};
+    static WndProcCallback g_userWndProc{nullptr};
     static Int64 __stdcall _WndProcBridge(void* hWnd, unsigned int Msg, UInt64 wParam, Int64 lParam) {
         auto cb = g_userWndProc;
         if (cb) {
@@ -131,36 +130,34 @@ namespace Platform {
 }
 
 // ---- C ABI 稳定入口（供动态调用，无需 windows.h） ----
-extern "C" __declspec(dllexport) void* Platform_Window_Create(const Platform::WindowDesc* desc, Platform::WndProcCallback cb) noexcept {
-    using namespace Platform;
-    const WindowDesc d = desc ? *desc : WindowDesc{};
-    auto r = Window::Create(d, cb);
+extern "C" __declspec(dllexport) void* Prm_Window_Create(const Prm::WindowDesc* desc, Prm::WndProcCallback cb) noexcept {
+    const Prm::WindowDesc d = desc ? *desc : Prm::WindowDesc{};
+    auto r = Prm::Window::Create(d, cb);
     return r.IsOk() ? r.Value().Get() : nullptr;
 }
 
-extern "C" __declspec(dllexport) void Platform_Window_Destroy(void* h) noexcept {
-    Platform::Window::Destroy(Platform::WindowHandle{h});
+extern "C" __declspec(dllexport) void Prm_Window_Destroy(void* h) noexcept {
+    Prm::Window::Destroy(Prm::WindowHandle{h});
 }
 
-extern "C" __declspec(dllexport) int Platform_Window_SetTitle(void* h, const char* title) noexcept {
-    using namespace Platform;
+extern "C" __declspec(dllexport) int Prm_Window_SetTitle(void* h, const char* title) noexcept {
     if (!h || !title) return 1;
     // 计算 C 字符串长度（避免引入标准库）
     USize len = 0;
     while (title[len] != '\0') ++len;
     const auto sv = StringView{reinterpret_cast<const Char8*>(title), len};
-    const auto s = Window::SetTitle(Platform::WindowHandle{h}, sv);
+    const auto s = Prm::Window::SetTitle(Prm::WindowHandle{h}, sv);
     return s.Ok() ? 0 : 1;
 }
 
 // 单步消息处理 C 接口：返回是否处理了消息（1/0）
-extern "C" __declspec(dllexport) int Platform_Window_ProcessOneMessage(void* h) noexcept {
-    const bool processed = Platform::Window::ProcessOneMessage(Platform::WindowHandle{h});
+extern "C" __declspec(dllexport) int Prm_Window_ProcessOneMessage(void* h) noexcept {
+    const bool processed = Prm::Window::ProcessOneMessage(Prm::WindowHandle{h});
     return processed ? 1 : 0;
 }
 
 // 查询是否存在 WM_QUIT 消息（不移除队列中的消息）
-extern "C" __declspec(dllexport) int Platform_Window_HasQuit() noexcept {
+extern "C" __declspec(dllexport) int Prm_Window_HasQuit() noexcept {
     MSG msg{};
     const unsigned int has = PeekMessageA(&msg, nullptr, WM_QUIT, WM_QUIT, 0u);
     return has ? 1 : 0;

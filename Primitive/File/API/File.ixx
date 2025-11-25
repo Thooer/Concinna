@@ -1,9 +1,7 @@
 module;
-export module Platform:File;
+export module Prm.File;
 
-import Prm;
-
-export namespace Platform {
+export namespace Prm {
     export class FilePath {
     public:
         static Expect<USize> Normalize(StringView path, Span<Char8, DynamicExtent> out) noexcept;
@@ -11,4 +9,3 @@ export namespace Platform {
         static Expect<USize> Basename(StringView path, Span<Char8, DynamicExtent> out) noexcept;
     };
 }
-

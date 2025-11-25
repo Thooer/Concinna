@@ -1,10 +1,8 @@
-module Platform;
+module Prm.Debug;
 
-import Prm;
 import :Debug;
 
-using namespace Platform;
+using namespace Prm;
 
 void Debug::Break() noexcept {}
 Status Debug::Output(StringView) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
-

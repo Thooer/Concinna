@@ -1,8 +1,6 @@
-export module System:Topology;
+export module Prm.System:Topology;
 
-import Prm;
-
-export namespace System {
+export namespace Prm {
     struct Topology {
         UInt32 logicalCores{0};
         UInt32 physicalCores{0};

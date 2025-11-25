@@ -1,15 +1,14 @@
 module;
-module Platform;
+module Prm.Time;
 
-import Prm;
 import :Time;
 
-namespace Platform {
+namespace Prm {
     
 
-    void Time::Init() noexcept {}
-    Time::TimePoint Time::Now() noexcept { return 0; }
-    void Time::SleepMs(UInt32) noexcept {}
+    void Init() noexcept {}
+    TimePoint Now() noexcept { return 0; }
+    void SleepMs(UInt32) noexcept {}
     
     
 

@@ -1,10 +1,9 @@
 module;
-module Platform;
+module Prm.Socket;
 
-import Prm;
 import :Socket;
 
-namespace Platform {
+namespace Prm {
     Expect<SocketHandle> Socket::Create(AddressFamily, SocketType, Protocol) noexcept {
         return Expect<SocketHandle>::Err(Err(StatusDomain::System(), StatusCode::Unsupported));
     }
@@ -48,4 +47,3 @@ namespace Platform {
         return Expect<SocketAddress>::Err(Err(StatusDomain::System(), StatusCode::Unsupported));
     }
 }
-

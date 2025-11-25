@@ -1,0 +1,5 @@
+API(Primitive.IO ${CMAKE_CURRENT_SOURCE_DIR}/API LINK Prm)
+Impl(Primitive.IO.Windows ${CMAKE_CURRENT_SOURCE_DIR}/Impl LINK Platform)
+Impl(Primitive.IO.Noop ${CMAKE_CURRENT_SOURCE_DIR}/Impl LINK Platform)
+Build(IO TYPE STATIC BACKEND Primitive.IO.Windows)
+

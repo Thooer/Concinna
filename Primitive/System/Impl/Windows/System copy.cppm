@@ -1,10 +1,9 @@
 module;
-module Platform;
+module Prm.System;
 
-import Prm;
 import :System;
 
-namespace Platform {
+namespace Prm {
     
 
     // 基本系统信息 API（尽量使用 kernel32，避免额外链接依赖）

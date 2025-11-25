@@ -1,13 +1,10 @@
 module;
-export module Platform:Debug;
+export module Prm.Debug;
 
-import Prm;
-
-export namespace Platform {
+export namespace Prm {
     export class Debug {
     public:
         static void Break() noexcept;
         static Status Output(StringView text) noexcept;
     };
 }
-

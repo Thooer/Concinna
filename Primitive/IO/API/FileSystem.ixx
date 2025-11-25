@@ -1,9 +1,7 @@
 module;
-export module Platform:FileSystem;
+export module Prm.IO:FileSystem;
 
-import Prm;
-
-export namespace Platform {
+export namespace Prm {
     struct FileHandleTag;
     export using FileHandle = StrongAlias<void*, FileHandleTag>;
 
@@ -12,7 +10,7 @@ export namespace Platform {
     export enum class SeekOrigin : UInt32 { Begin, Current, End };
     export enum class MapAccess : UInt32 { Read, Write, ReadWrite };
 
-    export struct Mapping { void* address{nullptr}; USize size{0}; };
+    export struct Mapping { void* address{nullptr}; USize length{0}; void* nativeMappingHandle{nullptr}; };
 
     export class File {
     public:
@@ -43,4 +41,3 @@ export namespace Platform {
         static Status RemoveFile(StringView path) noexcept;
     };
 }
-

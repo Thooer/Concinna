@@ -1,9 +1,7 @@
 module;
-export module Platform:Socket;
+export module Prm.Socket;
 
-import Prm;
-
-export namespace Platform {
+export namespace Prm {
     struct SocketHandleTag;
     export using SocketHandle = StrongAlias<void*, SocketHandleTag, AliasHash, AliasEquals, AliasCompare>;
 
@@ -40,4 +38,3 @@ export namespace Platform {
         [[nodiscard]] static Expect<SocketAddress> MakeIPv6(StringView ip, UInt16 port) noexcept;
     };
 }
-

@@ -1,22 +1,21 @@
 // Platform.Api — 纯C函数表（VTable）接口，将实现细节与链接方式解耦
 module;
-export module Platform:Api;
+export module Prm.Platform:Api;
 
-import Prm;
-import :FileSystem;
-import :Threading;
-import :Memory;
-import :System;
-import :Time;
-import :Window;
-import :Socket;
-import :Input;
-import :Audio;
-import :Debug;
-import :Clipboard;
-import :File;
+import Prm.IO;
+import Prm.Threading;
+import Prm.Ownership;
+import Prm.System;
+import Prm.Time;
+import Prm.Window;
+import Prm.Socket;
+import Prm.Input;
+import Prm.Audio;
+import Prm.Debug;
+import Prm.Clipboard;
+import Prm.File;
 
-export namespace Platform {
+export namespace Prm {
     // 文件系统 API（函数指针表）
     export struct FileAPI {
         Expect<FileHandle> (*Open)(StringView path, FileOpenMode mode, FileShareMode share) noexcept;
@@ -82,21 +81,21 @@ export namespace Platform {
     export struct MemoryAPI {
         // Virtual memory primitives
         Expect<void*> (*VirtualReserve)(USize size) noexcept;
-        Status (*VirtualCommit)(void* base, USize size, Memory::PageProtection protection) noexcept;
+        Status (*VirtualCommit)(void* base, USize size, PageProtection protection) noexcept;
         Status (*VirtualDecommit)(void* base, USize size) noexcept;
         Status (*VirtualRelease)(void* base) noexcept;
         USize  (*VirtualPageSize)() noexcept;
         USize  (*VirtualAllocationGranularity)() noexcept;
         Expect<USize> (*LargePageSize)() noexcept;
-        Status (*Protect)(void* base, USize size, Memory::PageProtection protection) noexcept;
+        Status (*Protect)(void* base, USize size, PageProtection protection) noexcept;
         Expect<void*> (*VirtualReserveEx)(USize size, UInt32 numaNodeId, bool useLargePages) noexcept;
 
         // Process heap primitives
-        Expect<Memory::HeapHandle> (*HeapCreate)() noexcept;
-        Status (*HeapDestroy)(Memory::HeapHandle h) noexcept;
-        Memory::HeapHandle (*HeapGetProcessDefault)() noexcept;
-        Expect<void*> (*HeapAlloc)(Memory::HeapHandle h, USize size, USize alignment) noexcept;
-        Status (*HeapFree)(Memory::HeapHandle h, void* p) noexcept;
+        Expect<HeapHandle> (*HeapCreate)() noexcept;
+        Status (*HeapDestroy)(HeapHandle h) noexcept;
+        HeapHandle (*HeapGetProcessDefault)() noexcept;
+        Expect<void*> (*HeapAlloc)(HeapHandle h, USize size, USize alignment) noexcept;
+        Status (*HeapFree)(HeapHandle h, void* p) noexcept;
         USize (*HeapMaximumAlignment)() noexcept;
     };
 
@@ -115,7 +114,7 @@ export namespace Platform {
 
     // 时间 API（函数指针表）
     export struct TimeAPI {
-        Time::TimePoint (*Now)() noexcept;
+        TimePoint (*Now)() noexcept;
         void (*SleepMs)(UInt32 milliseconds) noexcept;
 
         WallClock::Data (*WallNow)() noexcept;

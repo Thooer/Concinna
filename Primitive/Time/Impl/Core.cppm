@@ -1,9 +1,8 @@
-module Time;
-import Prm;
-import Time;
-import Platform;
+module Prm.Time;
+import Prm.Platform;
+import :Time;
 
-namespace Time {
+namespace Prm {
     constexpr Duration Delta(TimePoint start, TimePoint end) {
         return end - start;
     }
@@ -141,14 +140,18 @@ namespace Time {
     static MonotonicSource g_defaultSrc{};
     ITimeSource* DefaultSource() noexcept { return &g_defaultSrc; }
 
-    TimePoint MonotonicSource::Now() noexcept { return Platform::Time::Now(); }
+    TimePoint MonotonicSource::Now() noexcept {
+        const PlatformAPI* api = GetPlatformAPI();
+        return api ? api->time.Now() : 0;
+    }
 
     void SleepPreciseNs(Int64 ns) noexcept {
         if (ns <= 0) return;
         const Int64 coarse = ns - 200'000ll;
-        if (coarse > 0) Platform::Time::SleepNs(coarse);
-        const auto start = Platform::Time::Now();
-        while (Time::Delta(start, Platform::Time::Now()) < (ns - (coarse > 0 ? coarse : 0))) {
+        const PlatformAPI* api = GetPlatformAPI();
+        if (coarse > 0 && api) api->time.SleepMs(static_cast<UInt32>(coarse / 1'000'000ll));
+        const auto start = MonotonicSource::Now();
+        while (Delta(start, MonotonicSource::Now()) < (ns - (coarse > 0 ? coarse : 0))) {
         }
     }
 }

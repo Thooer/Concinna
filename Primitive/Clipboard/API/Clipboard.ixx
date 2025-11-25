@@ -1,13 +1,10 @@
 module;
-export module Platform:Clipboard;
+export module Prm.Clipboard;
 
-import Prm;
-
-export namespace Platform {
+export namespace Prm {
     export class Clipboard {
     public:
         static Status SetText(StringView text) noexcept;
         static Expect<USize> GetText(Span<Char8, DynamicExtent> buffer) noexcept;
     };
 }
-

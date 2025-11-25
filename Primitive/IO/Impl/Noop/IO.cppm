@@ -1,10 +1,9 @@
 module;
-module Platform;
+module Prm.IO;
 
-import Prm;
 import :FileSystem;
 
-namespace Platform {
+namespace Prm {
     
 
     FileHandle File::Stdout() noexcept { return FileHandle{nullptr}; }
@@ -43,5 +42,12 @@ namespace Platform {
     Status Path::CreateDirectory(StringView) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
     Status Path::RemoveFile(StringView) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
 
-    Status Directory::Walk(StringView, DirVisitor, void*) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Expect<DirectoryFindHandle> Directory::FindFirst(StringView, DirectoryEntry&) noexcept { return Expect<DirectoryFindHandle>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
+    bool  Directory::FindNext(DirectoryFindHandle, DirectoryEntry&) noexcept { return false; }
+    Status Directory::FindClose(DirectoryFindHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+
+    Status File::ReadAsync(FileHandle, Span<Byte, DynamicExtent>, UInt64, void*) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Status File::WriteAsync(FileHandle, Span<const Byte, DynamicExtent>, UInt64, void*) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Status File::CancelAsync(FileHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Expect<bool> File::PollAsync(FileHandle, UInt32) noexcept { return Expect<bool>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
 }

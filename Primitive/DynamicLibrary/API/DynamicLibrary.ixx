@@ -1,11 +1,10 @@
-// Platform.DynamicLibrary — 动态库加载与符号查询（C ABI 封装的类型安全接口）
+// 动态库加载与符号查询（C ABI 封装的类型安全接口）
 module;
-export module Platform:DynamicLibrary;
+export module Prm.DynamicLibrary;
 
-import Prm;
-import :Api; // 使用 PlatformAPI vtable 进行库操作
+import Prm.Platform; // 使用 PlatformAPI vtable 进行库操作
 
-export namespace Platform {
+export namespace Prm {
     
 
     using LibraryHandle = void*;

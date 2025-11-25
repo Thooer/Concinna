@@ -1,11 +1,8 @@
 module;
-module Platform;
+module Prm.Ownership;
 import :Memory;
 
-import Prm;
-
-
-using namespace Platform::Memory;
+using namespace Prm;
 
 Expect<void*> VirtualMemory::Reserve(USize) noexcept { return Expect<void*>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
 Status VirtualMemory::Commit(void*, USize, PageProtection) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }

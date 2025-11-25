@@ -1,10 +1,8 @@
 // Platform.Memory — 平台层内存接口（无导出宏，纯接口）
 module;
-export module Platform:Memory;
+export module Prm.Ownership:Memory;
 
-import Prm;
-
-export namespace Platform::Memory {
+export namespace Prm {
     
 
     struct HeapHandleTag;

@@ -1,9 +1,8 @@
-module Platform;
+module Prm.IO;
 
-import Prm;
 import :FileSystem;
 
-using namespace Platform;
+using namespace Prm;
 
 Expect<FileHandle> File::Open(StringView, FileOpenMode, FileShareMode) noexcept { return Expect<FileHandle>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
 Status File::Close(FileHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
@@ -26,4 +25,3 @@ bool Path::Exists(StringView) noexcept { return false; }
 bool Path::IsDirectory(StringView) noexcept { return false; }
 Status Path::CreateDirectory(StringView) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
 Status Path::RemoveFile(StringView) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
-

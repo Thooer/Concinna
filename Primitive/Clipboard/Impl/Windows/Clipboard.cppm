@@ -1,10 +1,8 @@
-module Platform;
+module Prm.Clipboard;
 
-import Prm;
 import :Clipboard;
 
-using namespace Platform;
+using namespace Prm;
 
 Status Clipboard::SetText(StringView) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
 Expect<USize> Clipboard::GetText(Span<Char8, DynamicExtent>) noexcept { return Expect<USize>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
-

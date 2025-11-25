@@ -1,8 +1,6 @@
-export module Time;
+export module Prm.Time;
 
-import Prm;
-
-export namespace Time {
+export namespace Prm {
     
     using TimePoint = Int64;
     using Duration  = Int64;
@@ -23,6 +21,10 @@ export namespace Time {
 
     [[nodiscard]] ITimeSource* DefaultSource() noexcept;
 
+    void Init() noexcept;
+    [[nodiscard]] TimePoint Now() noexcept;
+    void SleepMs(UInt32 milliseconds) noexcept;
+
     void SleepPreciseNs(Int64 ns) noexcept;
 
     struct Stopwatch {
@@ -37,8 +39,7 @@ export namespace Time {
         [[nodiscard]] Duration Elapsed() const noexcept;
     };
 
-    [[nodiscard]] Expect<USize>
-    FormatDuration(Duration d, Span<Char8, DynamicExtent> buffer) noexcept;
+    [[nodiscard]] Expect<USize> FormatDuration(Duration d, Span<Char8, DynamicExtent> buffer) noexcept;
 
     class WallClock {
     public:
@@ -51,6 +52,9 @@ export namespace Time {
 
         [[nodiscard]] static Expect<USize>
         Format(const Data& wc, Span<Char8, DynamicExtent> buffer) noexcept;
+
+        [[nodiscard]] static Data Now() noexcept;
+        [[nodiscard]] static Data UtcNow() noexcept;
     };
 
     struct Timer {

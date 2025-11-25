@@ -1,9 +1,7 @@
 module;
-export module Platform:Input;
+export module Prm.Input;
 
-import Prm;
-
-export namespace Platform {
+export namespace Prm {
     export class Input {
     public:
         static Status Initialize() noexcept;
@@ -23,4 +21,3 @@ export namespace Platform {
         static Expect<KeyboardState> GetState() noexcept;
     };
 }
-

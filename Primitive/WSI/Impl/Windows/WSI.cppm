@@ -6,15 +6,14 @@ module;
 #include <vulkan/vulkan_win32.h>
 #endif
 
-module Platform;
+module Prm.WSI;
 
-import Prm;
+import Prm.Window;
 import :WSI;
-import :Window;
 
-namespace Platform::WSI {
+namespace Prm {
 #ifdef HAS_VULKAN
-    Expect<void*> CreateVulkanSurface(void* instance, Platform::WindowHandle hwnd) noexcept {
+    Expect<void*> CreateVulkanSurface(void* instance, WindowHandle hwnd) noexcept {
         if (!instance || !hwnd.Get()) return Expect<void*>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         VkInstance vi = reinterpret_cast<VkInstance>(instance);
         HWND h = reinterpret_cast<HWND>(hwnd.Get());
@@ -32,7 +31,7 @@ namespace Platform::WSI {
         return Ok(StatusDomain::System());
     }
 #else
-    Expect<void*> CreateVulkanSurface(void*, Platform::WindowHandle) noexcept {
+    Expect<void*> CreateVulkanSurface(void*, WindowHandle) noexcept {
         return Expect<void*>::Err(Err(StatusDomain::System(), StatusCode::Unsupported));
     }
     Status DestroyVulkanSurface(void*, void*) noexcept {
@@ -44,7 +43,7 @@ namespace Platform::WSI {
         HWND hwnd{}; HDC hdc{}; HDC memdc{}; HBITMAP bmp{}; void* pixels{}; unsigned int pitch{}; unsigned int w{}; unsigned int h{};
     };
 
-    Expect<void*> CreateCpuPresent(Platform::WindowHandle hwnd, UInt32 width, UInt32 height) noexcept {
+    Expect<void*> CreateCpuPresent(WindowHandle hwnd, UInt32 width, UInt32 height) noexcept {
         CpuPresentState* s = reinterpret_cast<CpuPresentState*>(::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(CpuPresentState)));
         if (!s) return Expect<void*>::Err(Err(StatusDomain::System(), StatusCode::Failed));
         s->hwnd = reinterpret_cast<HWND>(hwnd.Get());

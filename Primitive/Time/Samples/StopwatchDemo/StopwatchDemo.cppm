@@ -1,21 +1,24 @@
-import Prm;
-import Time;
-import Platform;
+import Prm.Time;
+import Prm.Platform;
 
-struct PlatformTimeSource : Time::ITimeSource {
-    Time::TimePoint Now() noexcept override { return Platform::Time::Now(); }
+struct PlatformTimeSource : Prm::ITimeSource {
+    Prm::TimePoint Now() noexcept override {
+        const Prm::PlatformAPI* api = Prm::GetPlatformAPI();
+        return api ? api->time.Now() : 0;
+    }
 };
 
 extern "C" int main() {
     PlatformTimeSource src{};
-    Time::Stopwatch sw{};
+    Prm::Stopwatch sw{};
     sw.src = &src;
     sw.Start();
-    Platform::Time::SleepMs(10);
+    const Prm::PlatformAPI* api = Prm::GetPlatformAPI();
+    if (api) api->time.SleepMs(10);
     sw.Stop();
     auto d = sw.Elapsed();
     Char8 buf[32]{};
-    auto r = Time::FormatDuration(d, Span<Char8, DynamicExtent>{buf, 32});
+    auto r = Prm::FormatDuration(d, Span<Char8, DynamicExtent>{buf, 32});
     if (!r.IsOk()) return 1;
     return 0;
 }

@@ -1,10 +1,8 @@
 // Platform.Threading — 线程与同步原语（自由函数 + 不透明句柄）
 module;
-export module Platform:Threading;
+export module Prm.Threading;
 
-import Prm;
-
-export namespace Platform {
+export namespace Prm {
     
 
     struct ThreadHandleTag;

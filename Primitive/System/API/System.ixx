@@ -1,8 +1,7 @@
-export module System;
-import Prm;
+export module Prm.System;
 export import :Topology;
 
-export namespace System {
+export namespace Prm {
     enum class OSKind : UInt8 { Unknown = 0, Windows, Linux, MacOS };
 
     struct KernelInfo {

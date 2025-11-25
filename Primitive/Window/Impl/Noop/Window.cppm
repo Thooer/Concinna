@@ -1,10 +1,9 @@
 module;
-module Platform;
+module Prm.Window;
 
-import Prm;
 import :Window;
 
-namespace Platform {
+namespace Prm {
     
 
     Expect<WindowHandle> Window::Create(const WindowDesc&, WndProcCallback) noexcept {

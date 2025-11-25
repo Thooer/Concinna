@@ -1,14 +1,13 @@
-module System;
+module Prm.System;
 
-import Prm;
-import Platform;
-import System;
+import Prm.Ownership;
+import :System;
 import :Topology;
 
-namespace System {
+namespace Prm {
     Topology Detect() noexcept {
         Topology t{};
-        auto c = System::SystemInfo::Cpu();
+        auto c = SystemInfo::Cpu();
         t.logicalCores = c.logicalCores;
         t.physicalCores = c.physicalCores ? c.physicalCores : c.logicalCores;
         if (t.physicalCores && t.logicalCores && t.logicalCores >= t.physicalCores) {
@@ -17,7 +16,7 @@ namespace System {
         } else {
             t.threadsPerCore = 1;
         }
-        auto n = System::SystemInfo::GetNumaInfo();
+        auto n = SystemInfo::GetNumaInfo();
         if (n.IsOk()) {
             t.numaNodes = n.Value().nodeCount ? n.Value().nodeCount : 1u;
         } else {
@@ -55,8 +54,8 @@ namespace System {
         UInt32 lc = topo.logicalCores ? topo.logicalCores : 1u;
         UInt32 tpc = topo.threadsPerCore ? topo.threadsPerCore : 1u;
         UInt32 pc = lc / tpc; if (pc == 0u) pc = lc;
-        auto hb = Platform::Memory::Heap::GetProcessDefault();
-        auto rc = Platform::Memory::Heap::AllocRaw(hb, sizeof(CoreMask) * pc);
+        auto hb = Heap::GetProcessDefault();
+        auto rc = Heap::AllocRaw(hb, sizeof(CoreMask) * pc);
         if (!rc.IsOk()) return out;
         auto* arr = static_cast<CoreMask*>(rc.Value());
         for (UInt32 i = 0; i < pc; ++i) {
@@ -73,8 +72,8 @@ namespace System {
 
     void Release(CoreMasks cms) noexcept {
         if (!cms.data) return;
-        auto hb = Platform::Memory::Heap::GetProcessDefault();
-        (void)Platform::Memory::Heap::FreeRaw(hb, cms.data);
+        auto hb = Heap::GetProcessDefault();
+        (void)Heap::FreeRaw(hb, cms.data);
     }
 
     NodeMasks EnumerateNumaNodeMasks() noexcept {
@@ -82,8 +81,8 @@ namespace System {
         auto topo = Detect();
         UInt32 lc = topo.logicalCores ? topo.logicalCores : 1u;
         UInt32 nodes = topo.numaNodes ? topo.numaNodes : 1u;
-        auto hb = Platform::Memory::Heap::GetProcessDefault();
-        auto rc = Platform::Memory::Heap::AllocRaw(hb, sizeof(NodeMask) * nodes);
+        auto hb = Heap::GetProcessDefault();
+        auto rc = Heap::AllocRaw(hb, sizeof(NodeMask) * nodes);
         if (!rc.IsOk()) return out;
         auto* arr = static_cast<NodeMask*>(rc.Value());
         UInt32 per = lc / nodes; if (per == 0u) per = lc;
@@ -98,16 +97,16 @@ namespace System {
 
     void Release(NodeMasks nms) noexcept {
         if (!nms.data) return;
-        auto hb = Platform::Memory::Heap::GetProcessDefault();
-        (void)Platform::Memory::Heap::FreeRaw(hb, nms.data);
+        auto hb = Heap::GetProcessDefault();
+        (void)Heap::FreeRaw(hb, nms.data);
     }
 
     CacheMasks EnumerateCacheMasks() noexcept {
         CacheMasks out{};
         auto topo = Detect();
         UInt32 lc = topo.logicalCores ? topo.logicalCores : 1u;
-        auto hb = Platform::Memory::Heap::GetProcessDefault();
-        auto rc = Platform::Memory::Heap::AllocRaw(hb, sizeof(CacheMask));
+        auto hb = Heap::GetProcessDefault();
+        auto rc = Heap::AllocRaw(hb, sizeof(CacheMask));
         if (!rc.IsOk()) return out;
         auto* arr = static_cast<CacheMask*>(rc.Value());
         arr[0].level = 3u; arr[0].id = 0u; arr[0].group = 0u;
@@ -118,16 +117,16 @@ namespace System {
 
     void Release(CacheMasks cms) noexcept {
         if (!cms.data) return;
-        auto hb = Platform::Memory::Heap::GetProcessDefault();
-        (void)Platform::Memory::Heap::FreeRaw(hb, cms.data);
+        auto hb = Heap::GetProcessDefault();
+        (void)Heap::FreeRaw(hb, cms.data);
     }
 
     PackageMasks EnumeratePackageMasks() noexcept {
         PackageMasks out{};
         auto topo = Detect();
         UInt32 lc = topo.logicalCores ? topo.logicalCores : 1u;
-        auto hb = Platform::Memory::Heap::GetProcessDefault();
-        auto rc = Platform::Memory::Heap::AllocRaw(hb, sizeof(PackageMask));
+        auto hb = Heap::GetProcessDefault();
+        auto rc = Heap::AllocRaw(hb, sizeof(PackageMask));
         if (!rc.IsOk()) return out;
         auto* arr = static_cast<PackageMask*>(rc.Value());
         arr[0].id = 0u; arr[0].group = 0u; UInt64 m = 0u; for (UInt32 b = 0; b < lc && b < 64u; ++b) { m |= (UInt64(1) << b); }
@@ -136,7 +135,7 @@ namespace System {
 
     void Release(PackageMasks pms) noexcept {
         if (!pms.data) return;
-        auto hb = Platform::Memory::Heap::GetProcessDefault();
-        (void)Platform::Memory::Heap::FreeRaw(hb, pms.data);
+        auto hb = Heap::GetProcessDefault();
+        (void)Heap::FreeRaw(hb, pms.data);
     }
 }
