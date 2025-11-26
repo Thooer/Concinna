@@ -1,5 +1,5 @@
 export module Prm.Sync:SpinLock;
-import Prm.Element;
+import Element;
 import :Atomic;
 import :Backoff;
 import :MemoryOrder;

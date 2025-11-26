@@ -1,12 +1,10 @@
 // Windows 后端：实现 FileSystem 的 Stdout/Stderr 与 Write
-module;
-module Prm.IO;
-
-import :FileSystem;
+import Prm.IO;
+import Flow;
+import Element;
 
 namespace Prm {
     
-
     // Win32 基础 API（避免包含 <windows.h>）
     extern "C" __declspec(dllimport) void* GetStdHandle(unsigned long nStdHandle);
     extern "C" __declspec(dllimport) int   WriteFile(void* hFile, const void* lpBuffer, unsigned long nNumberOfBytesToWrite, unsigned long* lpNumberOfBytesWritten, void* lpOverlapped);
@@ -51,23 +49,19 @@ namespace Prm {
     extern "C" __declspec(dllimport) int   FindClose(void* hFindFile);
 
     // 标准输出句柄（类静态）
-    FileHandle File::Stdout() noexcept {
-        return FileHandle{GetStdHandle(kSTD_OUTPUT_HANDLE)};
-    }
+    FileHandle File::Stdout() noexcept { return GetStdHandle(kSTD_OUTPUT_HANDLE); }
 
     // 标准错误句柄（类静态）
-    FileHandle File::Stderr() noexcept {
-        return FileHandle{GetStdHandle(kSTD_ERROR_HANDLE)};
-    }
+    FileHandle File::Stderr() noexcept { return GetStdHandle(kSTD_ERROR_HANDLE); }
 
     // 写入（Span）
     Expect<USize> File::Write(FileHandle h, Span<const Byte, DynamicExtent> buffer) noexcept {
-        if (!h.Get()) {
+        if (!h) {
             return Expect<USize>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         unsigned long written = 0;
         const unsigned long toWrite = static_cast<unsigned long>(buffer.size());
-        const int ok = WriteFile(h.Get(), buffer.data(), toWrite, &written, nullptr);
+        const int ok = WriteFile(h, buffer.data(), toWrite, &written, nullptr);
         if (!ok) {
             return Expect<USize>::Err(Err(StatusDomain::System(), StatusCode::Unsupported));
         }
@@ -76,12 +70,12 @@ namespace Prm {
 
     // 写入（指针 + 长度）
     Expect<USize> File::Write(FileHandle h, const Byte* data, USize len) noexcept {
-        if (!h.Get()) {
+        if (!h) {
             return Expect<USize>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         unsigned long written = 0;
         const unsigned long toWrite = static_cast<unsigned long>(len);
-        const int ok = WriteFile(h.Get(), data, toWrite, &written, nullptr);
+        const int ok = WriteFile(h, data, toWrite, &written, nullptr);
         if (!ok) {
             return Expect<USize>::Err(Err(StatusDomain::System(), StatusCode::Unsupported));
         }
@@ -94,29 +88,29 @@ namespace Prm {
     Expect<USize> Write(FileHandle h, const Byte* data, USize len) noexcept { return File::Write(h, data, len); }
 
     // 路径相关
-    bool Path::Exists(StringView path) noexcept {
+    bool Path::Exists(Span<const Char8, DynamicExtent> path) noexcept {
         const char* p = reinterpret_cast<const char*>(path.data());
         const unsigned long attrs = GetFileAttributesA(p);
         return attrs != kINVALID_FILE_ATTRIBUTES;
     }
-    bool Path::IsDirectory(StringView path) noexcept {
+    bool Path::IsDirectory(Span<const Char8, DynamicExtent> path) noexcept {
         const char* p = reinterpret_cast<const char*>(path.data());
         const unsigned long attrs = GetFileAttributesA(p);
         return (attrs != kINVALID_FILE_ATTRIBUTES) && ((attrs & kFILE_ATTRIBUTE_DIRECTORY) != 0);
     }
-    Status Path::CreateDirectory(StringView path) noexcept {
+    Status Path::CreateDirectory(Span<const Char8, DynamicExtent> path) noexcept {
         const char* p = reinterpret_cast<const char*>(path.data());
         const int ok = CreateDirectoryA(p, nullptr);
         return ok ? Ok(StatusDomain::System()) : Err(StatusDomain::System(), StatusCode::Failed);
     }
-    Status Path::RemoveFile(StringView path) noexcept {
+    Status Path::RemoveFile(Span<const Char8, DynamicExtent> path) noexcept {
         const char* p = reinterpret_cast<const char*>(path.data());
         const int ok = DeleteFileA(p);
         return ok ? Ok(StatusDomain::System()) : Err(StatusDomain::System(), StatusCode::Failed);
     }
 
     // 文件句柄操作
-    Expect<FileHandle> File::Open(StringView path, FileOpenMode mode, FileShareMode share) noexcept {
+    Expect<FileHandle> File::Open(Span<const Char8, DynamicExtent> path, FileOpenMode mode, FileShareMode share) noexcept {
         const char* p = reinterpret_cast<const char*>(path.data());
         unsigned long access = 0;
         unsigned long creation = kOPEN_EXISTING;
@@ -146,21 +140,21 @@ namespace Prm {
             const int ok = SetFilePointerEx(h, 0, &newPos, kFILE_END);
             (void)ok;
         }
-        return Expect<FileHandle>::Ok(FileHandle{h});
+        return Expect<FileHandle>::Ok(h);
     }
 
     Status File::Close(FileHandle h) noexcept {
-        if (!h.Get() || h.Get() == kINVALID_HANDLE_VALUE) return Err(StatusDomain::System(), StatusCode::InvalidArgument);
-        const int ok = CloseHandle(h.Get());
+        if (!h || h == kINVALID_HANDLE_VALUE) return Err(StatusDomain::System(), StatusCode::InvalidArgument);
+        const int ok = CloseHandle(h);
         return ok ? Ok(StatusDomain::System()) : Err(StatusDomain::System(), StatusCode::Failed);
     }
 
     Expect<USize> File::Read(FileHandle h, Span<Byte, DynamicExtent> buffer) noexcept {
-        if (!h.Get() || h.Get() == kINVALID_HANDLE_VALUE) {
+        if (!h || h == kINVALID_HANDLE_VALUE) {
             return Expect<USize>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         unsigned long read = 0;
-        const int ok = ReadFile(h.Get(), buffer.data(), static_cast<unsigned long>(buffer.size()), &read, nullptr);
+        const int ok = ReadFile(h, buffer.data(), static_cast<unsigned long>(buffer.size()), &read, nullptr);
         if (!ok) {
             return Expect<USize>::Err(Err(StatusDomain::System(), StatusCode::Failed));
         }
@@ -168,17 +162,17 @@ namespace Prm {
     }
 
     Expect<UInt64> File::Size(FileHandle h) noexcept {
-        if (!h.Get() || h.Get() == kINVALID_HANDLE_VALUE) {
+        if (!h || h == kINVALID_HANDLE_VALUE) {
             return Expect<UInt64>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         Int64 sz = 0;
-        const int ok = GetFileSizeEx(h.Get(), &sz);
+        const int ok = GetFileSizeEx(h, &sz);
         if (!ok) { return Expect<UInt64>::Err(Err(StatusDomain::System(), StatusCode::Failed)); }
         return Expect<UInt64>::Ok(static_cast<UInt64>(sz));
     }
 
     Expect<UInt64> File::Seek(FileHandle h, Int64 offset, SeekOrigin origin) noexcept {
-        if (!h.Get() || h.Get() == kINVALID_HANDLE_VALUE) {
+        if (!h || h == kINVALID_HANDLE_VALUE) {
             return Expect<UInt64>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         unsigned long o = kFILE_BEGIN;
@@ -189,18 +183,18 @@ namespace Prm {
             default: o = kFILE_BEGIN; break;
         }
         Int64 newPos = 0;
-        const int ok = SetFilePointerEx(h.Get(), static_cast<Int64>(offset), &newPos, o);
+        const int ok = SetFilePointerEx(h, static_cast<Int64>(offset), &newPos, o);
         if (!ok) { return Expect<UInt64>::Err(Err(StatusDomain::System(), StatusCode::Failed)); }
         return Expect<UInt64>::Ok(static_cast<UInt64>(newPos));
     }
 
     // 内存映射 I/O
     Expect<Mapping> File::Map(FileHandle h, UInt64 offset, USize size, MapAccess access) noexcept {
-        if (!h.Get() || h.Get() == kINVALID_HANDLE_VALUE || size == 0) {
+        if (!h || h == kINVALID_HANDLE_VALUE || size == 0) {
             return Expect<Mapping>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         const unsigned long prot = (access == MapAccess::Read) ? kPAGE_READONLY : kPAGE_READWRITE;
-        void* mapping = CreateFileMappingA(h.Get(), nullptr, prot,
+        void* mapping = CreateFileMappingA(h, nullptr, prot,
                                            static_cast<unsigned long>((static_cast<UInt64>(size) >> 32) & 0xffffffffu),
                                            static_cast<unsigned long>(static_cast<UInt64>(size) & 0xffffffffu),
                                            nullptr);
@@ -245,38 +239,5 @@ namespace Prm {
     Status File::CancelAsync(FileHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
     Expect<bool> File::PollAsync(FileHandle, UInt32) noexcept { return Expect<bool>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
 
-    Expect<DirectoryFindHandle> Directory::FindFirst(StringView pattern, DirectoryEntry& out) noexcept {
-        if (pattern.size() == 0) return Expect<DirectoryFindHandle>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
-        const char* p = reinterpret_cast<const char*>(pattern.data());
-        struct WinFindData { unsigned long attrs; char name[260]; char pad[320]; } data{};
-        void* hFind = FindFirstFileA(p, &data);
-        if (!hFind || hFind == kINVALID_HANDLE_VALUE) {
-            return Expect<DirectoryFindHandle>::Err(Err(StatusDomain::System(), StatusCode::NotFound));
-        }
-        const char* n = data.name;
-        USize len = 0; while (n[len] != '\0') ++len;
-        out.name = reinterpret_cast<const Char8*>(n);
-        out.length = len;
-        out.isDirectory = (data.attrs & kFILE_ATTRIBUTE_DIRECTORY) != 0;
-        return Expect<DirectoryFindHandle>::Ok(DirectoryFindHandle{hFind});
-    }
-
-    bool Directory::FindNext(DirectoryFindHandle h, DirectoryEntry& out) noexcept {
-        struct WinFindData { unsigned long attrs; char name[260]; char pad[320]; } data{};
-        if (!h.Get() || h.Get() == kINVALID_HANDLE_VALUE) return false;
-        const int ok = FindNextFileA(h.Get(), &data);
-        if (!ok) return false;
-        const char* n = data.name;
-        USize len = 0; while (n[len] != '\0') ++len;
-        out.name = reinterpret_cast<const Char8*>(n);
-        out.length = len;
-        out.isDirectory = (data.attrs & kFILE_ATTRIBUTE_DIRECTORY) != 0;
-        return true;
-    }
-
-    Status Directory::FindClose(DirectoryFindHandle h) noexcept {
-        if (!h.Get() || h.Get() == kINVALID_HANDLE_VALUE) return Err(StatusDomain::System(), StatusCode::InvalidArgument);
-        const int ok = FindClose(h.Get());
-        return ok ? Ok(StatusDomain::System()) : Err(StatusDomain::System(), StatusCode::Failed);
-    }
+    
 }

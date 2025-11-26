@@ -1,9 +1,9 @@
 module;
 export module Prm.WSI;
 
-import Prm.Element;
-import Prm.Flow;
-import Prm.Text;
+import Element;
+import Flow;
+import Text;
 import Prm.Window;
 
 export namespace Prm {

@@ -1,6 +1,7 @@
 module Prm.Time;
-import Prm.Platform;
-import :Time;
+import Element;
+import Flow;
+import Prm.Time;
 
 namespace Prm {
     constexpr Duration Delta(TimePoint start, TimePoint end) {
@@ -140,18 +141,13 @@ namespace Prm {
     static MonotonicSource g_defaultSrc{};
     ITimeSource* DefaultSource() noexcept { return &g_defaultSrc; }
 
-    TimePoint MonotonicSource::Now() noexcept {
-        const PlatformAPI* api = GetPlatformAPI();
-        return api ? api->time.Now() : 0;
-    }
+    TimePoint MonotonicSource::Now() noexcept { return Prm::Now(); }
 
     void SleepPreciseNs(Int64 ns) noexcept {
         if (ns <= 0) return;
         const Int64 coarse = ns - 200'000ll;
-        const PlatformAPI* api = GetPlatformAPI();
-        if (coarse > 0 && api) api->time.SleepMs(static_cast<UInt32>(coarse / 1'000'000ll));
-        const auto start = MonotonicSource::Now();
-        while (Delta(start, MonotonicSource::Now()) < (ns - (coarse > 0 ? coarse : 0))) {
-        }
+        if (coarse > 0) Prm::SleepMs(static_cast<UInt32>(coarse / 1'000'000ll));
+        const auto start = DefaultSource()->Now();
+        while (Delta(start, DefaultSource()->Now()) < (ns - (coarse > 0 ? coarse : 0))) {}
     }
 }

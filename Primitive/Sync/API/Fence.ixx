@@ -1,6 +1,6 @@
 export module Prm.Sync:Fence;
-import Prm.Element;
-import Prm.Semantics;
+import Element;
+import Semantics;
 import :MemoryOrder;
 import <atomic>;
 

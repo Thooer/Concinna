@@ -6,10 +6,10 @@ import :FileSystem;
 namespace Prm {
     
 
-    FileHandle File::Stdout() noexcept { return FileHandle{nullptr}; }
-    FileHandle File::Stderr() noexcept { return FileHandle{nullptr}; }
+    FileHandle File::Stdout() noexcept { return nullptr; }
+    FileHandle File::Stderr() noexcept { return nullptr; }
 
-    Expect<FileHandle> File::Open(StringView, FileOpenMode, FileShareMode) noexcept {
+    Expect<FileHandle> File::Open(Span<const Char8, DynamicExtent>, FileOpenMode, FileShareMode) noexcept {
         return Expect<FileHandle>::Err(Err(StatusDomain::System(), StatusCode::Unsupported));
     }
     Status File::Close(FileHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
@@ -37,14 +37,12 @@ namespace Prm {
     Status File::Unmap(const Mapping&) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
     Status File::FlushMapped(FileHandle, void*, USize) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
 
-    bool Path::Exists(StringView) noexcept { return false; }
-    bool Path::IsDirectory(StringView) noexcept { return false; }
-    Status Path::CreateDirectory(StringView) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
-    Status Path::RemoveFile(StringView) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    bool Path::Exists(Span<const Char8, DynamicExtent>) noexcept { return false; }
+    bool Path::IsDirectory(Span<const Char8, DynamicExtent>) noexcept { return false; }
+    Status Path::CreateDirectory(Span<const Char8, DynamicExtent>) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Status Path::RemoveFile(Span<const Char8, DynamicExtent>) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
 
-    Expect<DirectoryFindHandle> Directory::FindFirst(StringView, DirectoryEntry&) noexcept { return Expect<DirectoryFindHandle>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
-    bool  Directory::FindNext(DirectoryFindHandle, DirectoryEntry&) noexcept { return false; }
-    Status Directory::FindClose(DirectoryFindHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    
 
     Status File::ReadAsync(FileHandle, Span<Byte, DynamicExtent>, UInt64, void*) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
     Status File::WriteAsync(FileHandle, Span<const Byte, DynamicExtent>, UInt64, void*) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }

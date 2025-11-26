@@ -5,7 +5,6 @@ module Prm.Ownership;
 import :Memory;
 
 using namespace Prm;
- 
 
     // Win32 虚拟内存 API（避免 windows.h）
     extern "C" __declspec(dllimport) void* VirtualAlloc(void* lpAddress, UInt64 dwSize, unsigned long flAllocationType, unsigned long flProtect);
@@ -154,7 +153,6 @@ using namespace Prm;
     }
 
     HeapHandle Heap::GetProcessDefault() noexcept { return HeapHandle{GetProcessHeap()}; }
-    }
 
     Expect<void*> Heap::AllocRaw(HeapHandle h, USize size) noexcept {
         if (!h.Get() || size == 0) return Expect<void*>::Err(MemErr(MemoryError::InvalidArgument));
@@ -192,7 +190,7 @@ using namespace Prm;
         void** marker = reinterpret_cast<void**>(p);
         void* raw = marker[-1];
         const int ok = HeapFree(h.Get(), 0u, raw);
-        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(Memory::MemoryError::HeapFreeFailed, GetLastError());
+        return ok ? Ok(StatusDomain::System()) : MemErrWithOs(MemoryError::HeapFreeFailed, GetLastError());
     }
 
     USize Heap::MaximumAlignment() noexcept {

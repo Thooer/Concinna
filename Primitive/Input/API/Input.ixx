@@ -1,8 +1,7 @@
 module;
 export module Prm.Input;
-import Prm.Element;
-import Prm.Flow;
-import Prm.Text;
+import Element;
+import Flow;
 
 export namespace Prm {
     export class Input {

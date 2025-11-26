@@ -3,7 +3,6 @@ import <vector>;
 import <cstdio>;
 import <chrono>;
 
-import Prm.Platform;
 
 static double avgNs(const std::vector<double>& v) {
     double s = 0.0; for (double x : v) s += x; return v.empty() ? 0.0 : s / static_cast<double>(v.size());

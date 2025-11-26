@@ -1,6 +1,6 @@
-module Prm.System;
-
-import :System;
+import Prm.System;
+import Flow;
+import Element;
 
 namespace Prm {
     KernelInfo SystemInfo::Kernel() noexcept { KernelInfo r{}; return r; }

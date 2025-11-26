@@ -1,10 +1,10 @@
 // Platform.Window — 窗口与消息泵原语（纯原语，无解释）
 module;
 export module Prm.Window;
-import Prm.Element;
-import Prm.Flow;
-import Prm.Text;
-import Prm.Paradigm;
+import Element;
+import Flow;
+import Text;
+import Paradigm;
 
 export namespace Prm {
     

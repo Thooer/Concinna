@@ -1,5 +1,5 @@
 export module Prm.Sync:CacheLine;
-import Prm.Element;
+import Element;
 
 export namespace Prm {
     template<typename T>

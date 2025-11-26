@@ -2,11 +2,13 @@
 module;
 export module Prm.DynamicLibrary;
 
-import Prm.Element;
-import Prm.Flow;
-import Prm.Text;
-import Prm.Paradigm;
-import Prm.Platform; // 使用 PlatformAPI vtable 进行库操作
+import Element;
+import Flow;
+import Text;
+import Paradigm;
+extern "C" __declspec(dllimport) void* LoadLibraryA(const char* path);
+extern "C" __declspec(dllimport) int   FreeLibrary(void* h);
+extern "C" __declspec(dllimport) void* GetProcAddress(void* h, const char* name);
 
 export namespace Prm {
     
@@ -17,27 +19,22 @@ export namespace Prm {
     class DynamicLibrary {
     public:
         [[nodiscard]] static Expect<LibraryHandle> Load(StringView path) noexcept {
-            const auto api = GetPlatformAPI();
-            if (!api || !api->library.Load) {
-                return Expect<LibraryHandle>::Err(Err(StatusDomain::System(), StatusCode::Failed));
-            }
-            return api->library.Load(path);
+            const char* p = reinterpret_cast<const char*>(path.data());
+            void* h = LoadLibraryA(p);
+            if (!h) return Expect<LibraryHandle>::Err(Err(StatusDomain::System(), StatusCode::Failed));
+            return Expect<LibraryHandle>::Ok(h);
         }
 
         [[nodiscard]] static Status Unload(LibraryHandle h) noexcept {
-            const auto api = GetPlatformAPI();
-            if (!api || !api->library.Free) {
-                return Err(StatusDomain::System(), StatusCode::Failed);
-            }
-            return api->library.Free(h);
+            int ok = FreeLibrary(h);
+            return ok ? Ok(StatusDomain::System()) : Err(StatusDomain::System(), StatusCode::Failed);
         }
 
         [[nodiscard]] static Expect<ProcAddress> Find(LibraryHandle h, StringView name) noexcept {
-            const auto api = GetPlatformAPI();
-            if (!api || !api->library.GetProc) {
-                return Expect<ProcAddress>::Err(Err(StatusDomain::System(), StatusCode::Failed));
-            }
-            return api->library.GetProc(h, name);
+            const char* n = reinterpret_cast<const char*>(name.data());
+            void* p = GetProcAddress(h, n);
+            if (!p) return Expect<ProcAddress>::Err(Err(StatusDomain::System(), StatusCode::Failed));
+            return Expect<ProcAddress>::Ok(p);
         }
     };
 }

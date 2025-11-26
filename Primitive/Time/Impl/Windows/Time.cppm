@@ -1,7 +1,8 @@
 module;
 module Prm.Time;
 
-import :Time;
+import Prm.Time;
+import Element;
 
 namespace Prm {
     

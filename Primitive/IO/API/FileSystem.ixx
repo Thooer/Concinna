@@ -1,13 +1,10 @@
 module;
 export module Prm.IO:FileSystem;
-import Prm.Element;
-import Prm.Flow;
-import Prm.Text;
-import Prm.Paradigm;
+import Element;
+import Flow;
 
 export namespace Prm {
-    struct FileHandleTag;
-    export using FileHandle = StrongAlias<void*, FileHandleTag>;
+    export using FileHandle = void*;
 
     export enum class FileOpenMode : UInt32 { Read, Write, ReadWrite, Append, Create, CreateNew, Truncate };
     export enum class FileShareMode : UInt32 { None, Read, Write, ReadWrite, Delete };
@@ -18,7 +15,7 @@ export namespace Prm {
 
     export class File {
     public:
-        static Expect<FileHandle> Open(StringView path, FileOpenMode mode, FileShareMode share) noexcept;
+        static Expect<FileHandle> Open(Span<const Char8, DynamicExtent> path, FileOpenMode mode, FileShareMode share) noexcept;
         static Status Close(FileHandle h) noexcept;
         static Expect<USize> Read(FileHandle h, Span<Byte, DynamicExtent> buffer) noexcept;
         static Expect<USize> Write(FileHandle h, Span<const Byte, DynamicExtent> buffer) noexcept;
@@ -39,9 +36,9 @@ export namespace Prm {
 
     export class Path {
     public:
-        static bool   Exists(StringView path) noexcept;
-        static bool   IsDirectory(StringView path) noexcept;
-        static Status CreateDirectory(StringView path) noexcept;
-        static Status RemoveFile(StringView path) noexcept;
+        static bool   Exists(Span<const Char8, DynamicExtent> path) noexcept;
+        static bool   IsDirectory(Span<const Char8, DynamicExtent> path) noexcept;
+        static Status CreateDirectory(Span<const Char8, DynamicExtent> path) noexcept;
+        static Status RemoveFile(Span<const Char8, DynamicExtent> path) noexcept;
     };
 }

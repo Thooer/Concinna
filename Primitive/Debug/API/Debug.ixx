@@ -1,13 +1,12 @@
 module;
 export module Prm.Debug;
-import Prm.Element;
-import Prm.Flow;
-import Prm.Text;
+import Element;
+import Flow;
 
 export namespace Prm {
     export class Debug {
     public:
         static void Break() noexcept;
-        static Status Output(StringView text) noexcept;
+        static Status Output(Span<const Char8, DynamicExtent> text) noexcept;
     };
 }

@@ -1,14 +1,13 @@
 module;
 export module Prm.File;
-import Prm.Element;
-import Prm.Flow;
-import Prm.Text;
+import Element;
+import Flow;
 
 export namespace Prm {
     export class FilePath {
     public:
-        static Expect<USize> Normalize(StringView path, Span<Char8, DynamicExtent> out) noexcept;
-        static Expect<USize> Join(StringView a, StringView b, Span<Char8, DynamicExtent> out) noexcept;
-        static Expect<USize> Basename(StringView path, Span<Char8, DynamicExtent> out) noexcept;
+        static Expect<USize> Normalize(Span<const Char8, DynamicExtent> path, Span<Char8, DynamicExtent> out) noexcept;
+        static Expect<USize> Join(Span<const Char8, DynamicExtent> a, Span<const Char8, DynamicExtent> b, Span<Char8, DynamicExtent> out) noexcept;
+        static Expect<USize> Basename(Span<const Char8, DynamicExtent> path, Span<Char8, DynamicExtent> out) noexcept;
     };
 }

@@ -121,7 +121,7 @@ function(apply_common_options target)
     endif()
   endif()
 endfunction()
-include(Script/CMake/NovaBuild.cmake)
+include(Scripts/CMake/NovaBuild.cmake)
 
 
 # Ensure MSVC default flags from the VS generator don't re-enable exceptions/RTTI
@@ -149,15 +149,17 @@ if(MSVC)
   endif()
 endif()
 
+# Add Language modules (moved from Primitive)
+add_subdirectory(Language/Meta)
+add_subdirectory(Language/Reflection)
+add_subdirectory(Language/Element)
+add_subdirectory(Language/Semantics)
+add_subdirectory(Language/Flow)
+add_subdirectory(Language/Paradigm)
+add_subdirectory(Language/Text)
+
 # Add Primitive modules
-add_subdirectory(Primitive/Element)
-add_subdirectory(Primitive/Semantics)
-add_subdirectory(Primitive/Meta)
-add_subdirectory(Primitive/Flow)
-add_subdirectory(Primitive/Paradigm)
 add_subdirectory(Primitive/Sync)
-add_subdirectory(Primitive/Text)
-add_subdirectory(Primitive/Platform)
 add_subdirectory(Primitive/IO)
 add_subdirectory(Primitive/File)
 add_subdirectory(Primitive/Input)

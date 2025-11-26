@@ -1,6 +1,8 @@
 module Prm.Input;
 
-import :Input;
+import Prm.Input;
+import Element;
+import Flow;
 
 using namespace Prm;
 

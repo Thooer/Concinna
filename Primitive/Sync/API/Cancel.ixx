@@ -1,5 +1,5 @@
 export module Prm.Sync:Cancel;
-import Prm.Element;
+import Element;
 import :Atomic;
 import :MemoryOrder;
 

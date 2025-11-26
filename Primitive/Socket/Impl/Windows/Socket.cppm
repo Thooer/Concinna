@@ -1,7 +1,11 @@
-module;
-module Prm.Socket;
+#include <new>
 
-import :Socket;
+import Prm.Socket;
+
+import Flow;
+import Element;
+import Text;
+import Paradigm;
 
 namespace Prm {
     extern "C" __declspec(dllimport) int WSAStartup(unsigned short, void*);

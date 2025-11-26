@@ -1,9 +1,9 @@
 module;
 export module Prm.Socket;
-import Prm.Element;
-import Prm.Flow;
-import Prm.Text;
-import Prm.Paradigm;
+import Element;
+import Flow;
+import Text;
+import Paradigm;
 
 export namespace Prm {
     struct SocketHandleTag;

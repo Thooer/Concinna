@@ -1,5 +1,5 @@
 API(Primitive.System ${CMAKE_CURRENT_SOURCE_DIR}/API LINK Element;Flow;Semantics;Paradigm;Text)
-Impl(Primitive.System.Windows ${CMAKE_CURRENT_SOURCE_DIR}/Impl LINK Platform)
-Impl(Primitive.System.Noop ${CMAKE_CURRENT_SOURCE_DIR}/Impl LINK Platform)
+Impl(Primitive.System.Windows ${CMAKE_CURRENT_SOURCE_DIR}/Impl LINK Element;Flow;Paradigm;Text;Ownership)
+Impl(Primitive.System.Noop ${CMAKE_CURRENT_SOURCE_DIR}/Impl LINK Element;Flow;Paradigm;Text;Ownership)
 Build(System TYPE STATIC BACKEND Primitive.System.Windows)
-Sample(System.TopoDump ${CMAKE_CURRENT_SOURCE_DIR}/Samples/TopoDump OPTION BUILD_SYSTEM_TOPO LINK "System;Ownership;Platform")
+Sample(System.TopoDump ${CMAKE_CURRENT_SOURCE_DIR}/Samples/TopoDump OPTION BUILD_SYSTEM_TOPO LINK "System;Ownership")

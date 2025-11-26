@@ -1,5 +1,5 @@
 export module Prm.Sync:Backoff;
-import Prm.Element;
+import Element;
 import :Fence;
 import <thread>;
 
