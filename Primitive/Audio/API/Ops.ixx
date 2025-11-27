@@ -1,11 +1,9 @@
-module;
-export module Prm.Audio;
+export module Prm.Audio:Ops;
 import Element;
 import Flow;
+import :Types;
 
 export namespace Prm {
-    export struct AudioDevice { UInt32 sampleRate{0}; UInt16 channels{0}; };
-
     export class Audio {
     public:
         static Expect<USize> EnumerateDevices(Span<AudioDevice, DynamicExtent> out) noexcept;

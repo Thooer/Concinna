@@ -1,6 +1,7 @@
 module Prm.Audio;
 
-import Prm.Audio;
+import :Types;
+import :Ops;
 import Element;
 import Flow;
 

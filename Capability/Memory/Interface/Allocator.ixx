@@ -1,10 +1,10 @@
-export module Memory:Allocator;
+export module Cap.Memory:Allocator;
 
 import Language;
 import :Definitions;
 import :IMemoryResource;
 
-export namespace Memory {
+export namespace Cap {
 
     /// @brief 内存分配器句柄 (Handle)
     /// @details 轻量级对象，持有 IMemoryResource 的指针。
@@ -40,18 +40,8 @@ export namespace Memory {
             }
 
             void* ptr = block.Value().ptr;
-            if constexpr (ExceptionsEnabled()) {
-                try {
-                    new (ptr) T(Forward<Args>(args)...);
-                } catch (...) {
-                    Free(MemoryBlock{ptr, sizeof(T)}, alignof(T));
-                    return Expect<T*>::Err(Err(StatusDomain::Generic(), StatusCode::Failed));
-                }
-                return Expect<T*>::Ok(static_cast<T*>(ptr));
-            } else {
-                new (ptr) T(Forward<Args>(args)...);
-                return Expect<T*>::Ok(static_cast<T*>(ptr));
-            }
+            new (ptr) T(Forward<Args>(args)...);
+            return Expect<T*>::Ok(static_cast<T*>(ptr));
         }
 
         /// @brief 析构并释放对象

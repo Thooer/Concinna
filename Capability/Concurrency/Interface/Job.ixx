@@ -1,8 +1,8 @@
-export module Concurrency:Job;
+export module Cap.Concurrency:Job;
 
 import Language;
 
-export namespace Concurrency {
+export namespace Cap {
     enum class QoS : UInt8 { Normal = 0, High = 1 };
 
     struct Job {

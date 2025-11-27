@@ -1,24 +1,21 @@
-module Memory;
+module Cap.Memory;
 import Language;
-import Platform;
+import Prm.Ownership;
 import :Definitions;
 import :IMemoryResource;
 import :NumaArena;
 
-namespace Memory {
+namespace Cap {
     NumaArenaResource::NumaArenaResource(USize capacity, UInt32 numaNode, bool useLargePages) noexcept
         : m_capacity(capacity), m_offset(0), m_committed(0), m_numaNode(numaNode), m_largePages(useLargePages) {
-        auto r = Platform::Memory::VirtualMemory::ReserveEx(capacity, numaNode, useLargePages);
-        if (r.IsOk()) {
-            m_base = r.Value();
-            if (useLargePages) {
-                m_committed = capacity;
-            }
+        m_base = ::operator new(capacity);
+        if (m_base) {
+            if (useLargePages) { m_committed = capacity; }
         }
     }
 
     NumaArenaResource::~NumaArenaResource() noexcept {
-        if (m_base) { (void)Platform::Memory::VirtualMemory::Release(m_base); m_base = nullptr; }
+        if (m_base) { ::operator delete(m_base); m_base = nullptr; }
         m_capacity = 0; m_offset = 0; m_committed = 0; m_numaNode = 0; m_largePages = false;
     }
 
@@ -27,7 +24,7 @@ namespace Memory {
             return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         if (!Alignment::IsPowerOfTwo(align)) {
-            return Expect<MemoryBlock>::Err(Platform::Memory::MemErr(Platform::Memory::MemoryError::AlignmentNotPowerOfTwo));
+            return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         USize aligned = Alignment::AlignUp(m_offset, align);
         if (aligned + size > m_capacity) {
@@ -35,16 +32,11 @@ namespace Memory {
         }
         USize end = aligned + size;
         if (!m_largePages && end > m_committed) {
-            USize page = Platform::Memory::VirtualMemory::PageSize();
+            USize page = 4096;
             USize commitTo = Alignment::AlignUp(end, page);
             USize start = Alignment::AlignUp(m_committed, page);
             USize toCommit = (commitTo > start) ? (commitTo - start) : 0;
-            if (toCommit > 0) {
-                void* base = static_cast<Byte*>(m_base) + start;
-                Status s = Platform::Memory::VirtualMemory::Commit(base, toCommit);
-                if (!s.Ok()) { return Expect<MemoryBlock>::Err(s); }
-                m_committed = commitTo;
-            }
+            if (toCommit > 0) { m_committed = commitTo; }
         }
         auto* ptr = static_cast<Byte*>(m_base) + aligned;
         m_offset = end;
@@ -64,16 +56,11 @@ namespace Memory {
                 return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::OutOfRange));
             }
             if (!m_largePages && newEndOffset > m_committed) {
-                USize page = Platform::Memory::VirtualMemory::PageSize();
+                USize page = 4096;
                 USize commitTo = Alignment::AlignUp(newEndOffset, page);
                 USize start = Alignment::AlignUp(m_committed, page);
                 USize toCommit = (commitTo > start) ? (commitTo - start) : 0;
-                if (toCommit > 0) {
-                    void* base = static_cast<Byte*>(m_base) + start;
-                    Status s = Platform::Memory::VirtualMemory::Commit(base, toCommit);
-                    if (!s.Ok()) { return Expect<MemoryBlock>::Err(s); }
-                    m_committed = commitTo;
-                }
+                if (toCommit > 0) { m_committed = commitTo; }
             }
             m_offset = newEndOffset;
             return Expect<MemoryBlock>::Ok(MemoryBlock{ block.ptr, newSize });

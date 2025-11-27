@@ -2,6 +2,7 @@ module Concurrency;
 import Language;
 import Memory;
 import Platform;
+import Prm.Ownership:Memory;
 import :Event;
 import :Fiber;
 import :Scheduler;
@@ -13,8 +14,8 @@ namespace Concurrency {
         auto* n = m_waiters.Pop();
         if (n) {
             if (!n->canceled.Load(MemoryOrder::Acquire)) { Scheduler::Instance().ResumeFiber(n->fiber); }
-            auto h = Platform::Memory::Heap::GetProcessDefault();
-            (void)Platform::Memory::Heap::FreeRaw(h, n);
+            auto h = Prm::Heap::GetProcessDefault();
+            (void)Prm::Heap::FreeRaw(h, n);
         }
     }
 
@@ -23,8 +24,8 @@ namespace Concurrency {
         WaitNode* n = nullptr;
         while ((n = m_waiters.Pop()) != nullptr) {
             if (!n->canceled.Load(MemoryOrder::Acquire)) { Scheduler::Instance().ResumeFiber(n->fiber); }
-            auto h = Platform::Memory::Heap::GetProcessDefault();
-            (void)Platform::Memory::Heap::FreeRaw(h, n);
+            auto h = Prm::Heap::GetProcessDefault();
+            (void)Prm::Heap::FreeRaw(h, n);
         }
     }
 
@@ -32,8 +33,8 @@ namespace Concurrency {
         if (m_signaled.Load(MemoryOrder::Acquire)) return;
         auto reg = +[](Fiber* f, void* ctx) noexcept {
             auto* self = static_cast<FiberEvent*>(ctx);
-            auto h = Platform::Memory::Heap::GetProcessDefault();
-            auto rn = Platform::Memory::Heap::AllocRaw(h, sizeof(WaitNode));
+            auto h = Prm::Heap::GetProcessDefault();
+            auto rn = Prm::Heap::AllocRaw(h, sizeof(WaitNode));
             if (!rn.IsOk()) return;
             void* mem = rn.Value();
             auto* n = new (mem) WaitNode{};
@@ -56,8 +57,8 @@ namespace Concurrency {
         auto reg = +[](Fiber* f, void* ctx) noexcept {
             auto* pp = static_cast<WaitPack*>(ctx);
             auto* self = pp->self;
-            auto h = Platform::Memory::Heap::GetProcessDefault();
-            auto rn = Platform::Memory::Heap::AllocRaw(h, sizeof(WaitNode));
+            auto h = Prm::Heap::GetProcessDefault();
+            auto rn = Prm::Heap::AllocRaw(h, sizeof(WaitNode));
             if (!rn.IsOk()) return;
             void* mem = rn.Value();
             auto* n = new (mem) WaitNode{};

@@ -1,22 +1,19 @@
-module Memory;
+module Cap.Memory;
 import Language;
-import Platform;
+import Prm.Ownership;
 import :Definitions;
 import :IMemoryResource;
 import :SmallObjectAllocator;
 import :PoolAllocator;
 
-namespace Memory {
+namespace Cap {
     SmallObjectAllocatorResource::SmallObjectAllocatorResource(USize perPoolCapacity, IMemoryResource* fallback) noexcept
         : m_poolCount(SizeClassTable::kCount), m_alignment(Alignment::Default), m_fallback(fallback) {
-        auto h = Platform::Memory::Heap::GetProcessDefault();
-        auto rArray = Platform::Memory::Heap::AllocRaw(h, sizeof(PoolAllocatorResource*) * m_poolCount);
-        if (!rArray.IsOk()) { m_pools = nullptr; m_poolCount = 0; return; }
-        m_pools = static_cast<PoolAllocatorResource**>(rArray.Value());
+        m_pools = static_cast<PoolAllocatorResource**>(::operator new(sizeof(PoolAllocatorResource*) * m_poolCount, std::nothrow));
+        if (!m_pools) { m_poolCount = 0; return; }
         for (USize i = 0; i < m_poolCount; ++i) {
-            auto rObj = Platform::Memory::Heap::AllocRaw(h, sizeof(PoolAllocatorResource));
-            if (!rObj.IsOk()) { m_pools[i] = nullptr; continue; }
-            void* mem = rObj.Value();
+            void* mem = ::operator new(sizeof(PoolAllocatorResource), std::nothrow);
+            if (!mem) { m_pools[i] = nullptr; continue; }
             USize bs = SizeClassTable::ClassSize(i);
             new (mem) PoolAllocatorResource(bs, perPoolCapacity);
             m_pools[i] = static_cast<PoolAllocatorResource*>(mem);
@@ -24,15 +21,14 @@ namespace Memory {
     }
 
     SmallObjectAllocatorResource::~SmallObjectAllocatorResource() noexcept {
-        auto h = Platform::Memory::Heap::GetProcessDefault();
         if (m_pools) {
             for (USize i = 0; i < m_poolCount; ++i) {
                 if (m_pools[i]) {
                     m_pools[i]->~PoolAllocatorResource();
-                    (void)Platform::Memory::Heap::FreeRaw(h, m_pools[i]);
+                    ::operator delete(m_pools[i]);
                 }
             }
-            (void)Platform::Memory::Heap::FreeRaw(h, m_pools);
+            ::operator delete(m_pools);
         }
         m_pools = nullptr; m_poolCount = 0; m_fallback = nullptr;
     }
@@ -42,7 +38,7 @@ namespace Memory {
             return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         if (!Alignment::IsPowerOfTwo(align)) {
-            return Expect<MemoryBlock>::Err(Platform::Memory::MemErr(Platform::Memory::MemoryError::AlignmentNotPowerOfTwo));
+            return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
 
         if (size <= SizeClassTable::kMaxSmall) {

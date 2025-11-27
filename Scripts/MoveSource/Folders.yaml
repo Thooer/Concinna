@@ -3,6 +3,14 @@
   - rules
 Language:
 Primitive:
+Capability:
+  - Concurrency
+  - Memory
+  - Containers
+System:
+  - Job
+  - Task
+  - Memory
   # - Element
   # - Flow
   # - Meta

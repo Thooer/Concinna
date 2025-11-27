@@ -1,13 +1,12 @@
 import Language;
 import Memory;
-import Platform;
 import <vector>;
 import <chrono>;
 import <random>;
 
 extern "C" int main() {
     using namespace Memory;
-    using namespace Platform;
+    
     
     
     // 测试参数配置

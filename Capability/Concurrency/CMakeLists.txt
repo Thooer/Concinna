@@ -1,8 +1,7 @@
 add_module_from_dirs(Concurrency
   INTERFACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Interface
-  BACKEND_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/Backends/Core
 )
-target_link_libraries(Concurrency PUBLIC Language Memory Platform System Tools.Tracy)
+target_link_libraries(Concurrency PUBLIC Language Memory Platform System Tools.Tracy Threading SystemMemory SystemJob ConcurrentContainers)
 apply_common_options(Concurrency)
 
 option(BUILD_CONCURRENCY_SAMPLES OFF)

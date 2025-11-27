@@ -7,7 +7,6 @@ import Paradigm;
 
 export namespace Prm {
     
-
     struct HeapHandleTag;
     export using HeapHandle = StrongAlias<void*, HeapHandleTag>;
 

@@ -44,8 +44,8 @@ namespace Prm {
 
     
 
-    Status File::ReadAsync(FileHandle, Span<Byte, DynamicExtent>, UInt64, void*) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
-    Status File::WriteAsync(FileHandle, Span<const Byte, DynamicExtent>, UInt64, void*) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
-    Status File::CancelAsync(FileHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
-    Expect<bool> File::PollAsync(FileHandle, UInt32) noexcept { return Expect<bool>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
+    Status File::ReadAsync(FileHandle, Span<Byte, DynamicExtent>, UInt64, AsyncRequest&) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Status File::WriteAsync(FileHandle, Span<const Byte, DynamicExtent>, UInt64, AsyncRequest&) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Status File::CancelAsync(const AsyncRequest&) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
+    Expect<bool> File::CheckAsync(const AsyncRequest&, bool, USize&) noexcept { return Expect<bool>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
 }

@@ -1,6 +1,5 @@
 import Language;
 import Memory;
-import Platform;
 
 extern "C" int main() {
     using namespace Memory;

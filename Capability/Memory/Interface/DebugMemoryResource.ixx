@@ -1,10 +1,10 @@
-export module Memory:DebugMemoryResource;
+export module Cap.Memory:DebugMemoryResource;
 
 import Language;
 import :Definitions;
 import :IMemoryResource;
 
-export namespace Memory {
+export namespace Cap {
     export struct DebugMemoryResource : IMemoryResource {
         IMemoryResource* m_inner{nullptr};
 

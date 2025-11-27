@@ -1,4 +1,4 @@
-export module Memory:PoolAllocator;
+export module Cap.Memory:PoolAllocator;
 
 import Language;
 import :Definitions;
@@ -6,7 +6,7 @@ import :IMemoryResource;
 import :ThreadCache;
 import :ConcurrentContainers;
 
-export namespace Memory {
+export namespace Cap {
     // 哨兵值定义 - 用于内存越界检测
     namespace Sentinel {
         constexpr UInt32 FrontSentinel = 0xBADC0FFE;  // 前置哨兵

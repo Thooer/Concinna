@@ -6,6 +6,8 @@ import :TaskHook;
 import Foundation.Time;
 import Foundation.Profiling;
 import Foundation.Memory;
+import System.Memory;
+import System.Job;
 
 using Language::USize;
 using Language::Int32;
@@ -18,6 +20,8 @@ namespace Engine {
 
     bool EngineRuntime::Initialize(const CoreConfig& cfg) noexcept {
         m_cfg = cfg;
+        Sys::InitThreadMemory();
+        (void)Sys::JobStart(0);
         auto a = ::Foundation::Memory::CreateDefaultAllocatorScoped();
         if (!a.IsOk()) return false;
         m_allocScoped = Language::Move(a.OkValue());
@@ -87,6 +91,8 @@ namespace Engine {
         if (m_orders)  { ::operator delete[](m_orders);  m_orders  = nullptr; }
         m_capacity = 0; m_count = 0;
         m_alloc = nullptr;
+        Sys::JobStop();
+        Sys::ShutdownThreadMemory();
     }
 
     USize EngineRuntime::SystemCount() const noexcept { return m_count; }

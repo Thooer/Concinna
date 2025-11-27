@@ -1,11 +1,11 @@
-export module Concurrency:Parker;
+export module Cap.Concurrency:Parker;
 
 import Language;
-import Platform;
+import Prm.Threading:Types;
 
-export namespace Concurrency {
+export namespace Cap {
     struct Parker {
-        Platform::EventHandle m_ev{};
+        Prm::EventHandle m_ev{};
         bool Init() noexcept;
         void Destroy() noexcept;
         void Park(UInt32 timeoutMs) noexcept;

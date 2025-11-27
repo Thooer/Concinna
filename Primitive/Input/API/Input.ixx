@@ -10,16 +10,12 @@ export namespace Prm {
         static void Shutdown() noexcept;
     };
 
-    export struct MouseState { Int32 x{0}; Int32 y{0}; bool left{false}; bool right{false}; bool middle{false}; };
-    export struct KeyboardState { bool keys[256]{}; };
-
-    export class Mouse {
-    public:
-        static Expect<MouseState> GetState() noexcept;
+    export struct GamepadState {
+        UInt32 buttons{0};
+        float  axes[8]{};
     };
-
-    export class Keyboard {
+    export class Gamepad {
     public:
-        static Expect<KeyboardState> GetState() noexcept;
+        static Expect<GamepadState> GetState(UInt32 index) noexcept;
     };
 }

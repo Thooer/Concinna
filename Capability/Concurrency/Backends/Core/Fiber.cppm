@@ -2,6 +2,7 @@ module Concurrency;
 import Language;
 import Memory;
 import Platform;
+import Prm.Ownership:Memory;
 import :Fiber;
 import Tools.Tracy;
 
@@ -10,12 +11,12 @@ extern "C" void Nova_FiberExit() noexcept;
 
 namespace Concurrency {
     FiberStackPool::FiberStackPool(USize capacity) noexcept {
-        auto r = Platform::Memory::VirtualMemory::Reserve(capacity);
+        auto r = Prm::VirtualMemory::Reserve(capacity);
         if (r.IsOk()) { m_base = r.Value(); m_capacity = capacity; }
     }
 
     FiberStackPool::~FiberStackPool() noexcept {
-        if (m_base) { (void)Platform::Memory::VirtualMemory::Release(m_base); m_base = nullptr; }
+        if (m_base) { (void)Prm::VirtualMemory::Release(m_base); m_base = nullptr; }
         m_capacity = 0; m_offset = 0; m_committed = 0;
     }
 
@@ -25,16 +26,16 @@ namespace Concurrency {
         if (n) {
             fs.base = n->ptr;
             fs.size = m_chunk;
-            auto h = Platform::Memory::Heap::GetProcessDefault();
-            (void)Platform::Memory::Heap::FreeRaw(h, n);
+            auto h = Prm::Heap::GetProcessDefault();
+            (void)Prm::Heap::FreeRaw(h, n);
             return fs;
         }
         USize inc = m_chunk;
 #if defined(_DEBUG)
-        inc += Platform::Memory::VirtualMemory::PageSize();
+        inc += Prm::VirtualMemory::PageSize();
 #endif
         if (!m_base || (m_offset + inc > m_capacity)) { return fs; }
-        auto c = Platform::Memory::VirtualMemory::Commit(static_cast<char*>(m_base) + m_offset, m_chunk);
+        auto c = Prm::VirtualMemory::Commit(static_cast<char*>(m_base) + m_offset, m_chunk);
         if (!c.Ok()) { return fs; }
         fs.base = static_cast<char*>(m_base) + m_offset;
         fs.size = m_chunk;
@@ -45,8 +46,8 @@ namespace Concurrency {
 
     void FiberStackPool::Free(FiberStack s) noexcept {
         if (!s.base) return;
-        auto h = Platform::Memory::Heap::GetProcessDefault();
-        auto rn = Platform::Memory::Heap::AllocRaw(h, sizeof(FreeNode));
+        auto h = Prm::Heap::GetProcessDefault();
+        auto rn = Prm::Heap::AllocRaw(h, sizeof(FreeNode));
         if (!rn.IsOk()) return;
         void* mem = rn.Value();
         auto* n = new (mem) FreeNode{};
@@ -62,7 +63,7 @@ namespace Concurrency {
         state = FiberState::Ready;
         if (!stack.base) { state = FiberState::Dead; return; }
         char* base = static_cast<char*>(stack.base);
-        USize ps = Platform::Memory::VirtualMemory::PageSize();
+        USize ps = Prm::VirtualMemory::PageSize();
         char* safeTop = base + stack.size - ps;
         USize sp = reinterpret_cast<USize>(safeTop);
         sp &= ~static_cast<USize>(0xF);

@@ -1,8 +1,9 @@
-export module Memory:ThreadCache;
+export module Cap.Memory:ThreadCache;
 
 import Language;
+import :Definitions;
 
-export namespace Memory {
+export namespace Cap {
     struct ThreadLocalContext {
         Atomic<UIntPtr> remoteFreeHead{0};
     };

@@ -4,8 +4,8 @@ nova_add_module_from_dirs(Engine.Runtime
   INTERFACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Interface
   BACKEND_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/Backends
 )
-target_link_libraries(Engine.Runtime PRIVATE Language Platform.Api Foundation.Time Foundation.Profiling Foundation.Containers Foundation.Memory)
-add_dependencies(Engine.Runtime Language Foundation.Time Foundation.Profiling Foundation.Containers Foundation.Memory Platform.Api)
+target_link_libraries(Engine.Runtime PRIVATE Language Platform.Api Foundation.Time Foundation.Profiling Foundation.Containers Foundation.Memory SystemMemory)
+add_dependencies(Engine.Runtime Language Foundation.Time Foundation.Profiling Foundation.Containers Foundation.Memory Platform.Api SystemMemory)
 
 option(NOVA_BUILD_ENGINE_RUNTIME_SAMPLES "Build Engine.Runtime samples" OFF)
 if(NOVA_BUILD_ENGINE_RUNTIME_SAMPLES)

@@ -1,10 +1,10 @@
-export module Memory:OwnedMemoryBlock;
+export module Cap.Memory:OwnedMemoryBlock;
 
 import Language;
 import :Definitions;
 import :Allocator;
 
-export namespace Memory {
+export namespace Cap {
     struct OwnedMemoryBlock {
         Allocator alloc{};
         MemoryBlock block{};

@@ -1,11 +1,11 @@
-export module Memory:SmallObjectAllocator;
+export module Cap.Memory:SmallObjectAllocator;
 
 import Language;
 import :Definitions;
 import :IMemoryResource;
 import :PoolAllocator;
 
-export namespace Memory {
+export namespace Cap {
     export struct SizeClassTable {
         static constexpr USize kClasses[16] = { 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256 };
         static constexpr USize kCount = 16;

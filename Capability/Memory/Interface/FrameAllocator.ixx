@@ -1,10 +1,10 @@
-export module Memory:FrameAllocator;
+export module Cap.Memory:FrameAllocator;
 
 import Language;
 import :Definitions;
 import :IMemoryResource;
 
-export namespace Memory {
+export namespace Cap {
     struct FrameAllocatorResource : IMemoryResource {
         void* m_base{nullptr};
         USize m_capacity{0};

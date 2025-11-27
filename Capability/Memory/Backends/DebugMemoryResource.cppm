@@ -1,11 +1,11 @@
-module Memory;
+module Cap.Memory;
 import Language;
-import Platform;
+import Prm.Ownership;
 import :Definitions;
 import :IMemoryResource;
 import :DebugMemoryResource;
 
-namespace Memory {
+namespace Cap {
     static constexpr UInt32 kCanary = 0xDEADBEEF;
 
     DebugMemoryResource::DebugMemoryResource(IMemoryResource* inner) noexcept : m_inner(inner), m_head(nullptr) {
@@ -24,7 +24,7 @@ namespace Memory {
             return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         if (!Alignment::IsPowerOfTwo(align)) {
-            return Expect<MemoryBlock>::Err(Platform::Memory::MemErr(Platform::Memory::MemoryError::AlignmentNotPowerOfTwo));
+            return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
 
         USize extra = static_cast<USize>(sizeof(UInt32)) * 2 + align;
@@ -41,13 +41,11 @@ namespace Memory {
         *front = kCanary;
         *back = kCanary;
 
-        auto h = Platform::Memory::Heap::GetProcessDefault();
-        auto rn = Platform::Memory::Heap::AllocRaw(h, sizeof(Entry));
-        if (!rn.IsOk()) {
+        void* nm = ::operator new(sizeof(Entry), std::nothrow);
+        if (!nm) {
             m_inner->Deallocate(baseBlock, align);
             return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::Failed));
         }
-        void* nm = rn.Value();
         auto* e = new (nm) Entry{ user, baseBlock.ptr, size, baseBlock.size, align, nullptr };
         e->next = m_head;
         m_head = e;
@@ -74,9 +72,8 @@ namespace Memory {
         m_count.FetchSub(1, MemoryOrder::Relaxed);
 
         m_inner->Deallocate(MemoryBlock{ cur->base, cur->total }, cur->align);
-        auto h = Platform::Memory::Heap::GetProcessDefault();
         cur->~Entry();
-        (void)Platform::Memory::Heap::FreeRaw(h, cur);
+        ::operator delete(cur);
     }
 
     Expect<MemoryBlock> DebugMemoryResource::Reallocate(MemoryBlock block, USize newSize, USize align) noexcept {

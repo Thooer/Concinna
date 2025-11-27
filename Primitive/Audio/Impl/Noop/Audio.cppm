@@ -1,6 +1,7 @@
 module Prm.Audio;
 
-import :Audio;
+import :Types;
+import :Ops;
 
 using namespace Prm;
 

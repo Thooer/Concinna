@@ -2,6 +2,8 @@ module;
 export module Log;
 import Language;
 import Platform;
+import Prm.Threading;
+import System.Memory;
 import Concurrency;
 import Debug;
 
@@ -22,12 +24,12 @@ export namespace Log {
         void Start(SyncLogger& target) noexcept {
             m_target = &target;
             m_running.Store(true, MemoryOrder::Release);
-            auto r = Platform::ThreadCreate(&ThreadProc, this);
+            auto r = Prm::ThreadCreate(&ThreadProc, this);
             if (r.IsOk()) m_thread = r.Value();
         }
         void Stop() noexcept {
             bool was = m_running.Exchange(false, MemoryOrder::AcqRel);
-            if (was && m_thread.Get()) { (void)Platform::ThreadJoin(m_thread); m_thread = Platform::ThreadHandle{}; }
+            if (was && m_thread.Get()) { (void)Prm::ThreadJoin(m_thread); m_thread = Prm::ThreadHandle{}; }
         }
         void Log(Level lv, const char* cat, const char* msg) noexcept {
             g_tlsBuf[g_tlsCount++] = Record{lv, cat, msg};
@@ -55,6 +57,7 @@ export namespace Log {
         }
         static void ThreadProc(void* user) noexcept { static_cast<AsyncLogger*>(user)->Run(); }
         void Run() noexcept {
+            Sys::InitThreadMemory();
             for (;;) {
                 if (!m_running.Load(MemoryOrder::Acquire)) break;
                 if (g_tlsCount > 0) { FlushTLS(); }
@@ -63,12 +66,13 @@ export namespace Log {
                 if (r.IsOk() && r.Value()) {
                     if (m_target) m_target->Write(rec);
                 } else {
-                    Platform::ThreadSleepMs(1);
+                    Prm::ThreadSleepMs(1);
                 }
             }
+            Sys::ShutdownThreadMemory();
         }
         Concurrency::MPMCQueue<Record> m_queue{};
-        Platform::ThreadHandle m_thread{};
+        Prm::ThreadHandle m_thread{};
         SyncLogger* m_target{};
         Atomic<bool> m_running{false};
     };

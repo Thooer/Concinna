@@ -1,53 +1,45 @@
-export module Memory:SystemAllocator;
+export module Cap.Memory:SystemAllocator;
 
 import Language;
-import Platform;
+import Flow;
+import Prm.Ownership;
+import <new>;
 import :Definitions;
 import :IMemoryResource;
 
-export namespace Memory {
+export namespace Cap {
     struct SystemMemoryResource : IMemoryResource {
-        Platform::Memory::HeapHandle heap{};
-
-        SystemMemoryResource() noexcept : heap(Platform::Memory::Heap::GetProcessDefault()) {}
+        SystemMemoryResource() noexcept = default;
 
         [[nodiscard]] StatusResult<MemoryBlock> Allocate(USize size, USize align) noexcept override {
             if (size == 0) {
                 return StatusResult<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
             }
             if (!Alignment::IsPowerOfTwo(align)) {
-                return StatusResult<MemoryBlock>::Err(Platform::Memory::MemErr(Platform::Memory::MemoryError::AlignmentNotPowerOfTwo));
+                return StatusResult<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
             }
-            if (align > Platform::Memory::Heap::MaximumAlignment()) {
-                return StatusResult<MemoryBlock>::Err(Platform::Memory::MemErr(Platform::Memory::MemoryError::AlignmentTooLarge));
-            }
-            auto r = Platform::Memory::Heap::Alloc(heap, size, align);
-            if (!r.IsOk()) {
-                return StatusResult<MemoryBlock>::Err(r.Error());
-            }
-            return StatusResult<MemoryBlock>::Ok(MemoryBlock{ r.Value(), size });
+            void* p = ::operator new(static_cast<std::size_t>(size), std::nothrow);
+            if (!p) { return StatusResult<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::Failed)); }
+            return StatusResult<MemoryBlock>::Ok(MemoryBlock{ p, size });
         }
 
-        void Deallocate(MemoryBlock block, USize) noexcept override {
+        void Deallocate(MemoryBlock block, USize align) noexcept override {
             if (block.Empty()) return;
-            (void)Platform::Memory::Heap::Free(heap, block.ptr);
+            ::operator delete(block.ptr);
         }
 
         [[nodiscard]] StatusResult<MemoryBlock> Reallocate(MemoryBlock block, USize newSize, USize align) noexcept override {
             if (newSize == 0) {
-                if (!block.Empty()) { (void)Platform::Memory::Heap::Free(heap, block.ptr); }
+                if (!block.Empty()) { ::operator delete(block.ptr, std::align_val_t(align)); }
                 return StatusResult<MemoryBlock>::Ok(MemoryBlock{});
             }
-            auto nr = Platform::Memory::Heap::Alloc(heap, newSize, align);
-            if (!nr.IsOk()) {
-                return StatusResult<MemoryBlock>::Err(nr.Error());
-            }
-            auto* dst = static_cast<void*>(nr.Value());
+            void* dst = ::operator new(static_cast<std::size_t>(newSize), std::nothrow);
+            if (!dst) { return StatusResult<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::Failed)); }
             auto* src = static_cast<const void*>(block.ptr);
             USize n = (block.size < newSize) ? block.size : newSize;
             MemMove(dst, src, n);
-            if (!block.Empty()) { (void)Platform::Memory::Heap::Free(heap, block.ptr); }
-            return StatusResult<MemoryBlock>::Ok(MemoryBlock{ nr.Value(), newSize });
+            if (!block.Empty()) { ::operator delete(block.ptr); }
+            return StatusResult<MemoryBlock>::Ok(MemoryBlock{ dst, newSize });
         }
 
         [[nodiscard]] bool IsEqual(const IMemoryResource& other) const noexcept override {

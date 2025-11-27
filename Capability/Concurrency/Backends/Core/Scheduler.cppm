@@ -3,6 +3,8 @@ import Language;
 import Memory;
 import Platform;
 import System;
+import System.Memory;
+import Prm.Threading;
 import :Job;
 import :MPMCQueue;
 import :Fiber;
@@ -12,13 +14,14 @@ import :Scheduler;
 import :Parker;
 import :Driver;
 import Tools.Tracy;
+import Prm.Ownership:Memory;
 
 namespace Concurrency {
     struct Worker {
         UInt32 id{0};
         ChaseLevDeque<Fiber*> qHigh{};
         ChaseLevDeque<Fiber*> qNorm{};
-        Platform::ThreadHandle th{};
+        Prm::ThreadHandle th{};
         Platform::FiberContext host{};
         Scheduler* sched{nullptr};
         Parker sleep{};
@@ -39,12 +42,13 @@ namespace Concurrency {
 
     Fiber* Scheduler::CurrentFiber() noexcept { return gCurrentFiber; }
     void Scheduler::SetCurrentFiber(Fiber* f) noexcept { gCurrentFiber = f; }
-    Memory::FrameAllocatorResource& Scheduler::GetFrameAllocator() noexcept { return gCurrentFiber->frame; }
+    Cap::FrameAllocatorResource& Scheduler::GetFrameAllocator() noexcept { return gCurrentFiber->frame; }
 
-    void WorkerStart(void* p) noexcept {
-        auto* w = static_cast<Worker*>(p);
-        Tools::Tracy::SetThreadName("Worker");
-        auto& sch = *w->sched;
+void WorkerStart(void* p) noexcept {
+    auto* w = static_cast<Worker*>(p);
+    Sys::InitThreadMemory();
+    Tools::Tracy::SetThreadName("Worker");
+    auto& sch = *w->sched;
         UInt32 idle = 0;
         UInt32 steals = 0;
         UInt32 localProcessed = 0;
@@ -76,7 +80,7 @@ namespace Concurrency {
                     idle = 0;
                     continue;
                 } else {
-                    Fiber* nf = static_cast<Fiber*>(Platform::Memory::Heap::AllocRaw(Platform::Memory::Heap::GetProcessDefault(), sizeof(Fiber)).Value());
+                    Fiber* nf = static_cast<Fiber*>(Prm::Heap::AllocRaw(Prm::Heap::GetProcessDefault(), sizeof(Fiber)).Value());
                     new (nf) Fiber{};
                     nf->Setup(sch.m_pool, job.invoke, job.arg, w->host);
                     nf->owner = w;
@@ -148,7 +152,7 @@ namespace Concurrency {
             if (sch.m_ioPoller.Load(MemoryOrder::Relaxed) == w->id) { gDriverApi->Poll(); }
             ++idle;
             if (idle < w->spinMax) {
-                Platform::ThreadYield();
+                Prm::ThreadYield();
             } else {
                 if (!w->idle.Load(MemoryOrder::Relaxed)) {
                     bool expected = false;
@@ -171,6 +175,7 @@ namespace Concurrency {
                 }
             }
         }
+        Sys::ShutdownThreadMemory();
     }
 
     Status Scheduler::Start(UInt32 workers) noexcept {
@@ -178,8 +183,8 @@ namespace Concurrency {
         if (workers == 0) {
             auto c = System::SystemInfo::Cpu(); workers = c.physicalCores ? c.physicalCores : 1;
         }
-        auto h = Platform::Memory::Heap::GetProcessDefault();
-        auto arr = Platform::Memory::Heap::AllocRaw(h, sizeof(Worker) * workers);
+        auto h = Prm::Heap::GetProcessDefault();
+        auto arr = Prm::Heap::AllocRaw(h, sizeof(Worker) * workers);
         if (!arr.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
         m_workers = static_cast<Worker*>(arr.Value());
         m_workerCount = workers;
@@ -190,9 +195,9 @@ namespace Concurrency {
         for (UInt32 i = 0; i < workers; ++i) { new (m_workers + i) Worker{}; }
         const USize cap = 1024;
         for (UInt32 i = 0; i < workers; ++i) {
-            auto sbh = Platform::Memory::Heap::AllocRaw(h, sizeof(Fiber*) * cap);
+            auto sbh = Prm::Heap::AllocRaw(h, sizeof(Fiber*) * cap);
             if (!sbh.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-            auto sbn = Platform::Memory::Heap::AllocRaw(h, sizeof(Fiber*) * cap);
+            auto sbn = Prm::Heap::AllocRaw(h, sizeof(Fiber*) * cap);
             if (!sbn.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
             if (!m_workers[i].Init(this, i, sbh.Value(), sbn.Value(), cap)) return Err(StatusDomain::System(), StatusCode::Failed);
         }
@@ -200,8 +205,8 @@ namespace Concurrency {
             auto cms = System::EnumerateCoreMasks();
             auto nms = System::EnumerateNumaNodeMasks();
             if (cms.data && cms.count > 0) {
-                auto h2 = Platform::Memory::Heap::GetProcessDefault();
-                auto ra = Platform::Memory::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
+                auto h2 = Prm::Heap::GetProcessDefault();
+                auto ra = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
                 if (!ra.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
                 m_numaOfWorker = static_cast<UInt32*>(ra.Value());
                 for (UInt32 i = 0; i < m_workerCount; ++i) { m_numaOfWorker[i] = 0u; }
@@ -230,16 +235,16 @@ namespace Concurrency {
                 }
                 UInt32 nodeMax = 0u; for (USize j = 0; j < nms.count; ++j) { if (nms.data[j].node > nodeMax) nodeMax = nms.data[j].node; }
                 m_numaNodeCount = (nms.count > 0) ? (nodeMax + 1u) : 1u;
-                auto rc = Platform::Memory::Heap::AllocRaw(h2, sizeof(UInt32) * m_numaNodeCount);
+                auto rc = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_numaNodeCount);
                 if (!rc.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
                 m_numaCounts = static_cast<UInt32*>(rc.Value());
                 for (UInt32 i = 0; i < m_numaNodeCount; ++i) { m_numaCounts[i] = 0u; }
                 for (UInt32 i = 0; i < m_workerCount; ++i) { ++m_numaCounts[m_numaOfWorker[i]]; }
-                auto rof = Platform::Memory::Heap::AllocRaw(h2, sizeof(UInt32) * m_numaNodeCount);
+                auto rof = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_numaNodeCount);
                 if (!rof.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
                 m_numaOffsets = static_cast<UInt32*>(rof.Value());
                 UInt32 acc = 0u; for (UInt32 i = 0; i < m_numaNodeCount; ++i) { m_numaOffsets[i] = acc; acc += m_numaCounts[i]; }
-                auto rmm = Platform::Memory::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
+                auto rmm = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
                 if (!rmm.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
                 m_numaMembers = static_cast<UInt32*>(rmm.Value());
                 for (UInt32 i = 0; i < m_numaNodeCount; ++i) { m_numaCounts[i] = 0u; }
@@ -255,8 +260,8 @@ namespace Concurrency {
             auto cms = System::EnumerateCoreMasks();
             auto caches = System::EnumerateCacheMasks();
             if (caches.data && caches.count > 0) {
-                auto h2 = Platform::Memory::Heap::GetProcessDefault();
-                auto ro = Platform::Memory::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
+                auto h2 = Prm::Heap::GetProcessDefault();
+                auto ro = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
                 if (!ro.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
                 m_l3OfWorker = static_cast<UInt32*>(ro.Value());
                 for (UInt32 i = 0; i < m_workerCount; ++i) { m_l3OfWorker[i] = 0u; }
@@ -303,7 +308,7 @@ namespace Concurrency {
         m_running.Store(true, MemoryOrder::Release);
         m_ioPoller.Store(workers ? (workers - 1u) : 0u, MemoryOrder::Relaxed);
         for (UInt32 i = 0; i < workers; ++i) {
-            auto th = Platform::ThreadCreate(&WorkerStart, m_workers + i);
+            auto th = Prm::ThreadCreate(&WorkerStart, m_workers + i);
             if (!th.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
             m_workers[i].th = th.Value();
         }
@@ -313,7 +318,7 @@ namespace Concurrency {
     Status Scheduler::Stop() noexcept {
         m_running.Store(false, MemoryOrder::Release);
         for (UInt32 i = 0; i < m_workerCount; ++i) {
-            (void)Platform::ThreadJoin(m_workers[i].th);
+            (void)Prm::ThreadJoin(m_workers[i].th);
         }
         auto h = Platform::Memory::Heap::GetProcessDefault();
         for (UInt32 i = 0; i < m_workerCount; ++i) { m_workers[i].~Worker(); }

@@ -1,10 +1,10 @@
-export module Memory:NumaArena;
+export module Cap.Memory:NumaArena;
 
 import Language;
 import :Definitions;
 import :IMemoryResource;
 
-export namespace Memory {
+export namespace Cap {
     struct NumaArenaResource : IMemoryResource {
         void* m_base{nullptr};
         USize m_capacity{0};

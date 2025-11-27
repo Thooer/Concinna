@@ -1,4 +1,4 @@
-export module Memory;
+export module Cap.Memory;
 
 export import :Definitions;
 export import :IMemoryResource;

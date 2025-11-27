@@ -2,9 +2,10 @@
 
 ## **1. 哲学**
 
-最大控制力和灵活性。
-可维护性：不主动追求MVP，而是优先考虑代码质量，和后期可扩展性。
-追求业界前沿实现，如有必要可创新。
+强灵活性：迟封装，保留高度定制性
+高控制力：提供细粒度控制。
+可维护性：优先考虑健壮性和后期可扩展性而不是MVP。
+第一性原理：如有必要优先创新，否则采纳前沿实现。
 
 ## **2. 目录**
 
@@ -76,7 +77,8 @@ Concinna/
 - **类型/方法**：`PascalCase`，常量`CONSTANT`，局部变量`kCONSTANT`
 - **成员变量**：公开`m_`，私有`t_`，接口`I`，模板`T`
 - **异步接口**：异步`Async`，线程安全`Safe`，非阻塞`Try`
-- **命名空间**：最多两层，如`Prm::Memory`
+- **命名空间**：最多一层，如`Prm::`
+- **模块前缀**：和命名空间一致，如`Prm.`
 
 ### **4.3 模块导入**
 - **模块化导入**:仅使用 `import <Module>`，禁止 `#include`
@@ -85,11 +87,14 @@ Concinna/
 
 ## **5. 架构**
 
-
-
+依赖关系：
+FoundationLayer：Language->Primitive->Capability->System
+EngineLayer：Engine->Dev->Editor
+FoundationLayer->EngineLayer
+Hub和Web各自独立
 
 ### 5.1 基础设施
-#### Language层：C++语义，编程范式，
+#### Language层：编程范式
 
 - Element：元素原语模块
 - Meta：元编程原语模块
@@ -97,8 +102,10 @@ Concinna/
 - Semantics：语义原语模块
 - Flow：流程原语模块
 - Text：文本原语模块
-- 
+- Reflection：反射原语模块
+
 #### Primitive层：重原语，轻逻辑
+
 - Sync：同步原语模块
 - Audio：音频原语模块
 - Clipboard：剪贴板原语模块
@@ -117,6 +124,7 @@ Concinna/
 - Window：窗口原语模块
 
 #### Capability层：重逻辑，轻状态
+
 - Algorithms：算法能力模块
 - Concurrency：并发能力模块
 - Config：配置能力模块
@@ -138,6 +146,7 @@ Concinna/
 - Streaming：流处理能力模块
 
 #### System层：重状态，轻业务
+
 - HotReload：热重载子系统
 - IR：中间表示子系统
 - Plugin：插件子系统
@@ -151,6 +160,7 @@ Concinna/
 ### 5.2 引擎业务
 
 #### Engine层：负责引擎的运行时
+
 - Animation：动画引擎模块
 - Audio：音频引擎模块
 - Gameplay：游戏玩法引擎模块
@@ -163,6 +173,7 @@ Concinna/
 - Scene：场景引擎模块
 
 #### Dev层：负责编辑器的运行时
+
 - Baker：资源烘焙工具
 - Coding：编码工具
 - Compiler：编译器工具

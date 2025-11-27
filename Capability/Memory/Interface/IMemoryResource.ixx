@@ -1,9 +1,9 @@
-export module Memory:IMemoryResource;
+export module Cap.Memory:IMemoryResource;
 
 import Language;
 import :Definitions;
 
-export namespace Memory {
+export namespace Cap {
     template<typename T>
     using StatusResult = Expect<T>;
     using USize = USize;

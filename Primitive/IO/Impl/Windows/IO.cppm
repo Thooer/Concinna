@@ -11,6 +11,9 @@ namespace Prm {
     extern "C" __declspec(dllimport) void* CreateFileA(const char* lpFileName, unsigned long dwDesiredAccess, unsigned long dwShareMode, void* lpSecurityAttributes, unsigned long dwCreationDisposition, unsigned long dwFlagsAndAttributes, void* hTemplateFile);
     extern "C" __declspec(dllimport) int   CloseHandle(void* hObject);
     extern "C" __declspec(dllimport) int   ReadFile(void* hFile, void* lpBuffer, unsigned long nNumberOfBytesToRead, unsigned long* lpNumberOfBytesRead, void* lpOverlapped);
+    extern "C" __declspec(dllimport) int   GetOverlappedResult(void* hFile, void* lpOverlapped, unsigned long* lpNumberOfBytesTransferred, int bWait);
+    extern "C" __declspec(dllimport) int   CancelIoEx(void* hFile, void* lpOverlapped);
+    extern "C" __declspec(dllimport) unsigned long GetLastError();
     extern "C" __declspec(dllimport) int   GetFileSizeEx(void* hFile, Int64* lpFileSize);
     extern "C" __declspec(dllimport) int   SetFilePointerEx(void* hFile, Int64 liDistanceToMove, Int64* lpNewFilePointer, unsigned long dwMoveMethod);
     extern "C" __declspec(dllimport) unsigned long GetFileAttributesA(const char* lpFileName);
@@ -44,6 +47,7 @@ namespace Prm {
     static constexpr unsigned long kFILE_MAP_READ      = 0x00000001ul;
     static constexpr unsigned long kFILE_MAP_WRITE     = 0x00000002ul;
     static constexpr unsigned long kFILE_MAP_READ_WRITE= kFILE_MAP_READ | kFILE_MAP_WRITE;
+    static constexpr unsigned long kERROR_IO_PENDING   = 997ul;
     extern "C" __declspec(dllimport) void* FindFirstFileA(const char* lpFileName, void* lpFindFileData);
     extern "C" __declspec(dllimport) int   FindNextFileA(void* hFindFile, void* lpFindFileData);
     extern "C" __declspec(dllimport) int   FindClose(void* hFindFile);
@@ -230,14 +234,83 @@ namespace Prm {
         return ok ? Ok(StatusDomain::System()) : Err(StatusDomain::System(), StatusCode::Failed);
     }
 
-    Status File::ReadAsync(FileHandle, Span<Byte, DynamicExtent>, UInt64, void*) noexcept {
-        return Err(StatusDomain::System(), StatusCode::Unsupported);
+    struct OVERLAPPED {
+        UIntPtr Internal;
+        UIntPtr InternalHigh;
+        UInt32  Offset;
+        UInt32  OffsetHigh;
+        void*   hEvent;
+    };
+
+    Status File::ReadAsync(FileHandle h, Span<Byte, DynamicExtent> buffer, UInt64 offset, AsyncRequest& out_req) noexcept {
+        if (!h || h == kINVALID_HANDLE_VALUE || buffer.size() == 0) {
+            return Err(StatusDomain::System(), StatusCode::InvalidArgument);
+        }
+        if (!out_req.nativeOverlapped) {
+            return Err(StatusDomain::System(), StatusCode::InvalidArgument);
+        }
+        auto ov = static_cast<OVERLAPPED*>(out_req.nativeOverlapped);
+        ov->Offset     = static_cast<UInt32>(offset & 0xffffffffu);
+        ov->OffsetHigh = static_cast<UInt32>((offset >> 32) & 0xffffffffu);
+        out_req.file = h;
+        unsigned long ignored = 0;
+        const int ok = ReadFile(h, buffer.data(), static_cast<unsigned long>(buffer.size()), &ignored, ov);
+        if (!ok) {
+            const unsigned long err = GetLastError();
+            if (err != kERROR_IO_PENDING) {
+                return Err(StatusDomain::System(), StatusCode::Failed);
+            }
+        }
+        return Ok(StatusDomain::System());
     }
-    Status File::WriteAsync(FileHandle, Span<const Byte, DynamicExtent>, UInt64, void*) noexcept {
-        return Err(StatusDomain::System(), StatusCode::Unsupported);
+
+    Status File::WriteAsync(FileHandle h, Span<const Byte, DynamicExtent> data, UInt64 offset, AsyncRequest& out_req) noexcept {
+        if (!h || h == kINVALID_HANDLE_VALUE || data.size() == 0) {
+            return Err(StatusDomain::System(), StatusCode::InvalidArgument);
+        }
+        if (!out_req.nativeOverlapped) {
+            return Err(StatusDomain::System(), StatusCode::InvalidArgument);
+        }
+        auto ov = static_cast<OVERLAPPED*>(out_req.nativeOverlapped);
+        ov->Offset     = static_cast<UInt32>(offset & 0xffffffffu);
+        ov->OffsetHigh = static_cast<UInt32>((offset >> 32) & 0xffffffffu);
+        out_req.file = h;
+        unsigned long ignored = 0;
+        const int ok = WriteFile(h, data.data(), static_cast<unsigned long>(data.size()), &ignored, ov);
+        if (!ok) {
+            const unsigned long err = GetLastError();
+            if (err != kERROR_IO_PENDING) {
+                return Err(StatusDomain::System(), StatusCode::Failed);
+            }
+        }
+        return Ok(StatusDomain::System());
     }
-    Status File::CancelAsync(FileHandle) noexcept { return Err(StatusDomain::System(), StatusCode::Unsupported); }
-    Expect<bool> File::PollAsync(FileHandle, UInt32) noexcept { return Expect<bool>::Err(Err(StatusDomain::System(), StatusCode::Unsupported)); }
+
+    Status File::CancelAsync(const AsyncRequest& req) noexcept {
+        if (!req.file || !req.nativeOverlapped) {
+            return Err(StatusDomain::System(), StatusCode::InvalidArgument);
+        }
+        const int ok = CancelIoEx(req.file, req.nativeOverlapped);
+        return ok ? Ok(StatusDomain::System()) : Err(StatusDomain::System(), StatusCode::Failed);
+    }
+
+    Expect<bool> File::CheckAsync(const AsyncRequest& req, bool wait, USize& out_bytes) noexcept {
+        out_bytes = 0;
+        if (!req.file || !req.nativeOverlapped) {
+            return Expect<bool>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
+        }
+        unsigned long transferred = 0;
+        const int ok = GetOverlappedResult(req.file, req.nativeOverlapped, &transferred, wait ? 1 : 0);
+        if (ok) {
+            out_bytes = static_cast<USize>(transferred);
+            return Expect<bool>::Ok(true);
+        }
+        const unsigned long err = GetLastError();
+        if (err == kERROR_IO_PENDING && !wait) {
+            return Expect<bool>::Ok(false);
+        }
+        return Expect<bool>::Err(Err(StatusDomain::System(), StatusCode::Failed));
+    }
 
     
 }

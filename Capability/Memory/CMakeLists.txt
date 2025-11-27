@@ -4,7 +4,8 @@ add_module_from_dirs(Memory
   INTERFACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Interface
   BACKEND_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/Backends
 )
-target_link_libraries(Memory PRIVATE Language Platform)
+# Link direct prerequisites to ensure MSVC module scan can import
+target_link_libraries(Memory PRIVATE Language Flow Ownership Sync)
 target_compile_definitions(Memory PRIVATE NOVA_FOUNDATION_BUILD)
 
 option(NOVA_BUILD_FOUNDATION_MEMORY_SAMPLES "Build Memory samples" OFF)

@@ -1,17 +1,18 @@
-export module Concurrency:Scheduler;
+export module System.Job:Scheduler;
 
 import Language;
 import Memory;
-import Platform;
-import System;
-import :Job;
-import :MPMCQueue;
-import :Fiber;
-import :Deque;
-import :Counter;
-import :Parker;
+import Prm.System;
+import Prm.Sync:LockFree;
+import Prm.Ownership:Memory;
+import Cap.Concurrency:Job;
+import Cap.ConcurrentContainers:MPMCQueue;
+import Cap.Concurrency:Fiber;
+import Cap.ConcurrentContainers:Deque;
+import Cap.Concurrency:Counter;
+import Cap.Concurrency:Parker;
 
-namespace Concurrency {
+export namespace Sys {
     struct Worker;
     struct Poller { void Poll() noexcept {} };
     export extern Poller gPoller;
@@ -20,8 +21,8 @@ namespace Concurrency {
         Atomic<bool> m_running{false};
         UInt32 m_workerCount{0};
         Worker* m_workers{nullptr};
-        Concurrency::MPMCQueue<Job> m_global{};
-        FiberStackPool m_pool{ 2u << 20u };
+        Cap::MPMCQueue<Cap::Job> m_global{};
+        Cap::FiberStackPool m_pool{ 2u << 20u };
         Atomic<UInt32> m_workCounter{0};
         UInt32 m_groupSize{1};
         UInt32 m_numaNodeCount{0};
@@ -35,7 +36,7 @@ namespace Concurrency {
         UInt32* m_l3Counts{nullptr};
         UInt32* m_l3Members{nullptr};
         struct IdleNode { IdleNode* next; Worker* w; };
-        Memory::IntrusiveLockFreeStack<IdleNode> m_idle{};
+        Prm::IntrusiveLockFreeStack<IdleNode> m_idle{};
         Atomic<UInt32> m_ioPoller{0};
         [[nodiscard]] UInt32 NextTimeoutMs() noexcept;
 
@@ -45,40 +46,32 @@ namespace Concurrency {
 
         [[nodiscard]] Status Start(UInt32 workers) noexcept;
         [[nodiscard]] Status Stop() noexcept;
-        [[nodiscard]] Status Submit(Job j) noexcept;
-        [[nodiscard]] Status SubmitBatch(Job* jobs, USize count) noexcept;
+        [[nodiscard]] Status Submit(Cap::Job j) noexcept;
+        [[nodiscard]] Status SubmitBatch(Cap::Job* jobs, USize count) noexcept;
         template<typename F>
         [[nodiscard]] Status Run(F&& f) noexcept {
-            JobOf<std::remove_reference_t<F>> jf{ Forward<F>(f) };
+            Cap::JobOf<std::remove_reference_t<F>> jf{ Forward<F>(f) };
             return Submit(jf.AsJob());
         }
-        void ResumeFiber(Fiber* fb) noexcept;
-        static Fiber* CurrentFiber() noexcept;
-        static void SetCurrentFiber(Fiber* f) noexcept;
-        static Memory::FrameAllocatorResource& GetFrameAllocator() noexcept;
+        void ResumeFiber(Cap::Fiber* fb) noexcept;
+        static Cap::Fiber* CurrentFiber() noexcept;
+        static void SetCurrentFiber(Cap::Fiber* f) noexcept;
+        static Cap::FrameAllocatorResource& GetFrameAllocator() noexcept;
         struct WorkerMetrics { UInt64 runNs{0}; UInt64 waitNs{0}; UInt64 stealNs{0}; UInt64 runCount{0}; UInt64 stealHit{0}; };
         [[nodiscard]] UInt32 WorkerCount() const noexcept { return m_workerCount; }
         [[nodiscard]] bool GetWorkerMetrics(UInt32 i, WorkerMetrics& out) const noexcept;
     };
 
-    thread_local Fiber* gCurrentFiber{nullptr};
-
+    thread_local Cap::Fiber* gCurrentFiber{nullptr};
 
     void WorkerStart(void* p) noexcept;
 
-    
-
-    export void ResumeWaiters(Counter& c) noexcept;
-
-    export void WaitForCounter(Counter& c) noexcept;
-
-    export Status RunWithCounter(Job j, Counter& c) noexcept;
-
-    export Status RunWithCounterPriority(Job j, Counter& c, QoS qos) noexcept;
-
-    export Status SubmitPriority(Job j, QoS qos) noexcept;
-
-    export void Suspend(void(*reg)(Fiber*, void*), void* ctx) noexcept;
+    export void ResumeWaiters(Cap::Counter& c) noexcept;
+    export void WaitForCounter(Cap::Counter& c) noexcept;
+    export Status RunWithCounter(Cap::Job j, Cap::Counter& c) noexcept;
+    export Status RunWithCounterPriority(Cap::Job j, Cap::Counter& c, Cap::QoS qos) noexcept;
+    export Status SubmitPriority(Cap::Job j, Cap::QoS qos) noexcept;
+    export void Suspend(void(*reg)(Cap::Fiber*, void*), void* ctx) noexcept;
 
     export template<typename Index, typename Fn>
     Status ParallelFor(Index begin, Index end, Index grain, Fn&& f) noexcept {
@@ -86,23 +79,22 @@ namespace Concurrency {
         auto& sch = Scheduler::Instance();
         auto total = static_cast<USize>(end - begin);
         auto tasks = static_cast<USize>((total + grain - 1) / grain);
-        Counter c{}; c.Reset(static_cast<UInt32>(tasks));
+        Cap::Counter c{}; c.Reset(static_cast<UInt32>(tasks));
         for (Index s = begin; s < end; s += grain) {
             Index e = s + grain; if (e > end) e = end;
             using FnPtr = void(*)(Index) noexcept;
             struct RangePack { FnPtr fn; Index s; Index e; };
-            auto h = Platform::Memory::Heap::GetProcessDefault();
-            auto rn = Platform::Memory::Heap::AllocRaw(h, sizeof(RangePack));
+            auto h = Prm::Heap::GetProcessDefault();
+            auto rn = Prm::Heap::AllocRaw(h, sizeof(RangePack));
             if (!rn.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
             void* mem = rn.Value();
             FnPtr fnp = +f;
             auto* pack = new (mem) RangePack{ fnp, s, e };
-            Job j{};
+            Cap::Job j{};
             j.invoke = +[](void* p) noexcept {
                 auto* rp = static_cast<RangePack*>(p);
                 for (Index i = rp->s; i < rp->e; ++i) { rp->fn(i); }
-                // Counter dec and resume handled by RunWithCounter wrapper
-                (void)Platform::Memory::Heap::FreeRaw(Platform::Memory::Heap::GetProcessDefault(), p);
+                (void)Prm::Heap::FreeRaw(Prm::Heap::GetProcessDefault(), p);
             };
             j.arg = pack;
             auto st = RunWithCounter(j, c);
@@ -111,8 +103,9 @@ namespace Concurrency {
         WaitForCounter(c);
         return Ok(StatusDomain::System());
     }
-    export Status AwaitEvent(Platform::EventHandle h) noexcept;
+
+    export Status AwaitEvent(Prm::EventHandle h) noexcept;
     export Status AwaitTimeout(UInt32 ms) noexcept;
-    export Status Await(Platform::EventHandle h) noexcept;
+    export Status Await(Prm::EventHandle h) noexcept;
     export Status AwaitMs(UInt32 ms) noexcept;
 }

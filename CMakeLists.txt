@@ -182,3 +182,44 @@ if(BUILD_PRIMITIVE_DYNAMICLIB)
 endif()
 
 # Remove testing stubs
+
+# Capability layer
+add_subdirectory(Capability/ConcurrentContainers)
+add_subdirectory(Capability/Concurrency)
+add_subdirectory(Capability/Memory)
+
+# System layer
+add_subdirectory(System/Memory)
+add_subdirectory(System/Job)
+
+# Third-party tools
+add_subdirectory(ThirdParty/Tracy)
+
+## Aggregator targets
+# Language umbrella module: re-exports and depends on all Language submodules
+add_module_from_dirs(Language INTERFACE_DIR ${CMAKE_SOURCE_DIR}/Language/API)
+target_link_libraries(Language PUBLIC Element Semantics Flow Paradigm Text Reflection Meta)
+
+# Platform umbrella (Primitive stack)
+add_library(Platform INTERFACE)
+target_link_libraries(Platform INTERFACE System Time Threading Ownership Sync IO File Socket Window Input Audio Clipboard Debug)
+
+# Platform.Api is legacy alias of Platform
+add_library(Platform.Api INTERFACE)
+target_link_libraries(Platform.Api INTERFACE Platform)
+
+# Foundation layer aggregators used by Engine targets
+add_library(Foundation.Time INTERFACE)
+target_link_libraries(Foundation.Time INTERFACE Time)
+
+add_library(Foundation.Profiling INTERFACE)
+target_link_libraries(Foundation.Profiling INTERFACE Tools.Tracy)
+
+add_library(Foundation.Containers INTERFACE)
+target_link_libraries(Foundation.Containers INTERFACE ConcurrentContainers)
+
+add_library(Foundation.Memory INTERFACE)
+target_link_libraries(Foundation.Memory INTERFACE Memory SystemMemory Ownership)
+
+# Engine runtime
+add_subdirectory(Engine/Runtime)

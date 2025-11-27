@@ -1,10 +1,10 @@
-export module Memory:StackAllocator;
+export module Cap.Memory:StackAllocator;
 
 import Language;
 import :Definitions;
 import :IMemoryResource;
 
-export namespace Memory {
+export namespace Cap {
     struct StackAllocatorResource : IMemoryResource {
         void* m_base{nullptr};
         USize m_capacity{0};

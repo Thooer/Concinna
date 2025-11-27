@@ -1,6 +1,6 @@
 import Language;
 import Memory;
-import Platform;
+import Prm.Threading:ThreadSync;
 import <atomic>;
 import <thread>;
 import <vector>;
@@ -47,7 +47,7 @@ extern "C" int main() {
             ebr.Advance();
             ebr.Collect();
             gate.fetch_add(1, std::memory_order_relaxed);
-            Platform::WakeByAddressAll(&gate);
+            Prm::WakeByAddressAll(&gate);
             std::this_thread::sleep_for(milliseconds(2));
             if (steady_clock::now() >= endTime) break;
         }
@@ -154,7 +154,7 @@ extern "C" int main() {
 
     while (steady_clock::now() < endTime) { std::this_thread::sleep_for(milliseconds(200)); }
     stop.store(true, std::memory_order_relaxed);
-    Platform::WakeByAddressAll(&gate);
+    Prm::WakeByAddressAll(&gate);
     for (auto& th : workers) th.join();
     collector.join();
     reporter.join();

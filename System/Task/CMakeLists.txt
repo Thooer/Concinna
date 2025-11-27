@@ -1,0 +1,2 @@
+API(System.Task ${CMAKE_CURRENT_SOURCE_DIR}/API LINK Language)
+Build(SystemTask TYPE STATIC)

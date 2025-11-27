@@ -13,6 +13,11 @@ export namespace Prm {
 
     export struct Mapping { void* address{nullptr}; USize length{0}; void* nativeMappingHandle{nullptr}; };
 
+    export struct AsyncRequest {
+        void*      nativeOverlapped{nullptr};
+        FileHandle file{nullptr};
+    };
+
     export class File {
     public:
         static Expect<FileHandle> Open(Span<const Char8, DynamicExtent> path, FileOpenMode mode, FileShareMode share) noexcept;
@@ -28,10 +33,10 @@ export namespace Prm {
         static FileHandle Stdout() noexcept;
         static FileHandle Stderr() noexcept;
 
-        static Status ReadAsync(FileHandle h, Span<Byte, DynamicExtent> buffer, UInt64 offset, void* user) noexcept;
-        static Status WriteAsync(FileHandle h, Span<const Byte, DynamicExtent> data, UInt64 offset, void* user) noexcept;
-        static Status CancelAsync(FileHandle h) noexcept;
-        static Expect<bool> PollAsync(FileHandle h, UInt32 timeoutMs) noexcept;
+        static Status ReadAsync(FileHandle h, Span<Byte, DynamicExtent> buffer, UInt64 offset, AsyncRequest& out_req) noexcept;
+        static Status WriteAsync(FileHandle h, Span<const Byte, DynamicExtent> data, UInt64 offset, AsyncRequest& out_req) noexcept;
+        static Status CancelAsync(const AsyncRequest& req) noexcept;
+        static Expect<bool> CheckAsync(const AsyncRequest& req, bool wait, USize& out_bytes) noexcept;
     };
 
     export class Path {

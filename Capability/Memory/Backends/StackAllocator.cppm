@@ -1,20 +1,17 @@
-module Memory;
+module Cap.Memory;
 import Language;
-import Platform;
+import Prm.Ownership;
 import :Definitions;
 import :IMemoryResource;
 import :StackAllocator;
 
-namespace Memory {
+namespace Cap {
     StackAllocatorResource::StackAllocatorResource(USize capacity) noexcept : m_capacity(capacity), m_offset(0), m_committed(0) {
-        auto r = Platform::Memory::VirtualMemory::Reserve(capacity);
-        if (r.IsOk()) {
-            m_base = r.Value();
-            
-        }
+        // simplified reserve: use OS-agnostic base pointer stub
+        m_base = ::operator new(capacity);
     }
     StackAllocatorResource::~StackAllocatorResource() noexcept {
-        if (m_base) { (void)Platform::Memory::VirtualMemory::Release(m_base); m_base = nullptr; }
+        if (m_base) { ::operator delete(m_base); m_base = nullptr; }
         m_capacity = 0; m_offset = 0;
     }
     Expect<MemoryBlock> StackAllocatorResource::Allocate(USize size, USize align) noexcept {
@@ -26,7 +23,7 @@ namespace Memory {
             return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         if (!Alignment::IsPowerOfTwo(align)) {
-            return Expect<MemoryBlock>::Err(Platform::Memory::MemErr(Platform::Memory::MemoryError::AlignmentNotPowerOfTwo));
+            return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         
         #if defined(CONFIG_DEBUG) || defined(_DEBUG)
@@ -53,24 +50,7 @@ namespace Memory {
         if (end <= aligned) DebugBreak();  // 溢出检查
         #endif
         
-        if (end > m_committed) {
-            USize page = Platform::Memory::VirtualMemory::PageSize();
-            USize commitTo = Alignment::AlignUp(end, page);
-            USize start = Alignment::AlignUp(m_committed, page);
-            USize toCommit = (commitTo > start) ? (commitTo - start) : 0;
-            if (toCommit > 0) {
-                void* base = static_cast<Byte*>(m_base) + start;
-                Status s = Platform::Memory::VirtualMemory::Commit(base, toCommit);
-                if (!s.Ok()) {
-                    return Expect<MemoryBlock>::Err(s);
-                }
-                m_committed = commitTo;
-                
-                #if defined(CONFIG_DEBUG) || defined(_DEBUG)
-                if (m_committed != commitTo) DebugBreak();  // 状态不一致
-                #endif
-            }
-        }
+        if (end > m_committed) { m_committed = end; }
         
         auto* ptr = static_cast<Byte*>(m_base) + aligned;
         USize newOffset = aligned + size;
@@ -130,20 +110,7 @@ namespace Memory {
             if (newEndOffset > m_capacity) {
                 return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::OutOfRange));
             }
-            if (newEndOffset > m_committed) {
-                USize page = Platform::Memory::VirtualMemory::PageSize();
-                USize commitTo = Alignment::AlignUp(newEndOffset, page);
-                USize start = Alignment::AlignUp(m_committed, page);
-                USize toCommit = (commitTo > start) ? (commitTo - start) : 0;
-                if (toCommit > 0) {
-                    void* base = static_cast<Byte*>(m_base) + start;
-                    Status s = Platform::Memory::VirtualMemory::Commit(base, toCommit);
-                    if (!s.Ok()) {
-                        return Expect<MemoryBlock>::Err(s);
-                    }
-                    m_committed = commitTo;
-                }
-            }
+            if (newEndOffset > m_committed) { m_committed = newEndOffset; }
             m_offset = newEndOffset;
             return Expect<MemoryBlock>::Ok(MemoryBlock{ block.ptr, newSize });
         }

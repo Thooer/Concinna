@@ -1,14 +1,15 @@
-export module Concurrency:Fiber;
+export module Cap.Concurrency:Fiber;
 
 import Language;
 import Memory;
-import Platform;
+import Prm.Threading:Types;
+import Prm.Sync:LockFree;
 
 extern "C" void Nova_FiberEnter() noexcept;
 extern "C" void Nova_FiberExit() noexcept;
 extern "C" void Nova_FiberExitNotify(void* fiberPtr) noexcept;
 
-export namespace Concurrency {
+export namespace Cap {
     enum class FiberState { Free, Ready, Running, Waiting, Dead };
 
     struct FiberStack { void* base{nullptr}; USize size{0}; };
@@ -20,7 +21,7 @@ export namespace Concurrency {
         USize m_committed{0};
         USize m_chunk{64u * 1024u};
         struct FreeNode { FreeNode* next; void* ptr; };
-        Memory::IntrusiveLockFreeStack<FreeNode> m_free{};
+        Prm::IntrusiveLockFreeStack<FreeNode> m_free{};
         FiberStackPool(USize capacity) noexcept;
         ~FiberStackPool() noexcept;
         [[nodiscard]] FiberStack Alloc() noexcept;
@@ -34,16 +35,16 @@ export namespace Concurrency {
         FiberStack stack{};
         FiberFunc entry{nullptr};
         void* arg{nullptr};
-        Platform::FiberContext ctx{};
+        Prm::FiberContext ctx{};
         FiberStackPool* poolRef{nullptr};
-        Platform::FiberContext* retCtx{nullptr};
+        Prm::FiberContext* retCtx{nullptr};
         void* owner{nullptr};
         UInt8 prio{0};
-        Memory::FrameAllocatorResource frame{ 1u << 20u };
+        Cap::FrameAllocatorResource frame{ 1u << 20u };
         USize frameMarker{0};
 
-        void Setup(FiberStackPool& pool, FiberFunc fn, void* a, Platform::FiberContext& returnCtx) noexcept;
-        void StartSwitch(Platform::FiberContext& returnCtx) noexcept;
+        void Setup(FiberStackPool& pool, FiberFunc fn, void* a, Prm::FiberContext& returnCtx) noexcept;
+        void StartSwitch(Prm::FiberContext& returnCtx) noexcept;
         void Reset(FiberStackPool& pool) noexcept;
     };
 

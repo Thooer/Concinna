@@ -1,6 +1,5 @@
 import Language;
 import Memory;
-import Platform;
 import <thread>;
 
 extern "C" int main() {

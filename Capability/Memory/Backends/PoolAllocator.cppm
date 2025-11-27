@@ -1,17 +1,16 @@
-module Memory;
+module Cap.Memory;
 import Language;
-import Platform;
+import Prm.Ownership;
 import :Definitions;
 import :IMemoryResource;
 import :PoolAllocator;
 import :ThreadCache;
 
-namespace Memory {
+namespace Cap {
     // 线程亲和PoolAllocator实现 - 优化热路径分配性能
     PoolAllocatorResource::PoolAllocatorResource(USize blockSize, USize capacity) noexcept 
         : m_capacity(capacity), m_committed(0), m_blockSize(blockSize), m_alignment(Alignment::Default), m_localHead(nullptr) {
-        auto r = Platform::Memory::VirtualMemory::Reserve(capacity);
-        if (r.IsOk()) { m_base = r.Value(); }
+        m_base = ::operator new(capacity);
         m_owner = ThreadMemory::Get();
         m_getContext = &ThreadMemory::Get;
         
@@ -27,7 +26,7 @@ namespace Memory {
 
 
     PoolAllocatorResource::~PoolAllocatorResource() noexcept {
-        if (m_base) { (void)Platform::Memory::VirtualMemory::Release(m_base); m_base = nullptr; }
+        if (m_base) { ::operator delete(m_base); m_base = nullptr; }
         m_capacity = 0; m_committed = 0; m_blockSize = 0; m_alignment = Alignment::Default;
         m_remote.Reset();
         m_localHead = nullptr;
@@ -43,10 +42,10 @@ namespace Memory {
             return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::OutOfRange));
         }
         if (!Alignment::IsPowerOfTwo(align)) {
-            return Expect<MemoryBlock>::Err(Platform::Memory::MemErr(Platform::Memory::MemoryError::AlignmentNotPowerOfTwo));
+            return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
         if (align > m_alignment) {
-            return Expect<MemoryBlock>::Err(Platform::Memory::MemErr(Platform::Memory::MemoryError::AlignmentTooLarge));
+            return Expect<MemoryBlock>::Err(Err(StatusDomain::System(), StatusCode::OutOfRange));
         }
 
         // 热路径：尝试从本地空闲链表分配（非原子，无锁）
@@ -91,7 +90,7 @@ namespace Memory {
         }
 
         // 仍然没有内存，向OS申请新的页面
-        USize page = Platform::Memory::VirtualMemory::PageSize();
+        USize page = 4096;
         constexpr USize kBatchPages = 512;
         USize commitChunk = page * kBatchPages;
         USize commitTo = Alignment::AlignUp(m_committed + commitChunk, page);
@@ -104,8 +103,8 @@ namespace Memory {
         USize toCommit = (commitTo > start) ? (commitTo - start) : 0;
         if (toCommit > 0) {
             void* base = static_cast<Byte*>(m_base) + start;
-            Status s = Platform::Memory::VirtualMemory::Commit(base, toCommit);
-            if (!s.Ok()) { return Expect<MemoryBlock>::Err(s); }
+            // assume reserved memory usable; skip OS commit in this backend stub
+            (void)base; (void)toCommit;
             m_committed = commitTo;
             
             // 将新分配的内存块放入本地空闲链表
