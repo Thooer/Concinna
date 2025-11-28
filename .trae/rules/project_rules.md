@@ -3,7 +3,7 @@
 ## **1. 哲学**
 
 强灵活性：迟封装，保留高度定制性
-高控制力：提供细粒度控制。
+最高控制力：几乎所有内容自研。
 可维护性：优先考虑健壮性和后期可扩展性而不是MVP。
 第一性原理：如有必要优先创新，否则采纳前沿实现。
 
@@ -53,7 +53,7 @@ Concinna/
 ## **3. 构建**
 当前平台：Windows平台
 - **统一管理**：模块根目录CMakeLists.txt统一管理接口、实现和样例
-- **模块化导入**：仅使用 `import <Module>`，禁止 `#include` 和跨模块导入分区
+- **模块化导入**：仅使用 `import <Module>`，禁止 `#include` 和跨模块导入分区，MSVC一定会报错。
 - **构建优化**：Windows使用Visual Studio生成器
 - **构建函数简述**：
   - `API(<BuildName> <API_DIR> [LINK <deps>])` 定义接口文件集并记录依赖；第一个参数为构建名称，例如 `Primitive.System`
@@ -65,7 +65,7 @@ Concinna/
   - `cmake -S . -B Build` 生成Visual Studio项目
 
 
-## **4. 语言规范**
+## **4. 规范**
 除了少部分标准库，图形学API，文件编解码，编程语言交互库，深度学习，不依赖任何外部库。
 ### **4.1 核心原则**
 - **移动优先**：默认可移动、不可拷贝，拷贝需显式允许
@@ -84,6 +84,14 @@ Concinna/
 - **模块化导入**:仅使用 `import <Module>`，禁止 `#include`
 - **标准库隔离**:Primitive以外的模块禁止使用，测试文件除外
 
+### **4.4 模块开发流程**
+
+- **模块定位**
+- **依赖关系**
+- **确定API**：尽可能一个类对应一个文件
+- **编写README.md**
+- **编写测试**
+- **后端实现**
 
 ## **5. 架构**
 
@@ -139,7 +147,8 @@ Hub和Web各自独立
 - Memory：内存能力模块
 - Network：网络能力模块
 - Plugin：插件能力模块
-- Profiling：性能分析能力模块
+- Profiling：埋点与数据捕获
+- Random：随机数能力模块
 - Reflection：反射能力模块
 - Resource：资源能力模块
 - Serialization：序列化能力模块
@@ -150,6 +159,7 @@ Hub和Web各自独立
 - HotReload：热重载子系统
 - IR：中间表示子系统
 - Plugin：插件子系统
+- Profiling：会话管理与服务
 - ResourceManager：资源管理子系统
 - Scripting：脚本子系统
 - Streaming：流处理子系统
@@ -159,7 +169,7 @@ Hub和Web各自独立
 
 ### 5.2 引擎业务
 
-#### Engine层：负责引擎的运行时
+#### Engine层：Runtime
 
 - Animation：动画引擎模块
 - Audio：音频引擎模块
@@ -172,7 +182,7 @@ Hub和Web各自独立
 - Runtime：运行时引擎模块
 - Scene：场景引擎模块
 
-#### Dev层：负责编辑器的运行时
+#### Dev层：Offline
 
 - Baker：资源烘焙工具
 - Coding：编码工具
@@ -182,7 +192,7 @@ Hub和Web各自独立
 - Importer：资源导入工具
 - Packing：资源打包工具
 
-#### Editor层：负责编辑器的用户界面、交互、插件系统等
+#### Editor层：
 - Controller：控制器模块
 - GUI：图形用户界面模块
 - Infrastructure：基础设施模块

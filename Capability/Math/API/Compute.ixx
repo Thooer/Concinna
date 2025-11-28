@@ -1,9 +1,9 @@
 module;
-export module Math:Compute;
+export module Cap.Math:Compute;
 import Language;
 import SIMD;
 import :Storage;
-export namespace Math {
+export namespace Cap {
     template<int W>
     struct Vector3Packet {
         SIMD::Packet<float, W> xs;

@@ -1,16 +1,20 @@
 # 文件夹范围配置
 .trae:
   - rules
-Language:
-Primitive:
+# Language:
+# Primitive:
 Capability:
   - Concurrency
   - Memory
   - Containers
-System:
-  - Job
-  - Task
-  - Memory
+  - Algorithms
+  # - Random
+  # - Crypto
+  - Math
+# System:
+#   - Job
+#   - Task
+#   - Memory
   # - Element
   # - Flow
   # - Meta

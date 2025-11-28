@@ -1,7 +1,7 @@
 export module Containers:Vector;
 
 import Language;
-import Memory;
+import Cap.Memory;
 import :Traits;
 import <type_traits>;
 
@@ -11,20 +11,20 @@ export namespace Containers {
         void* m_data{ nullptr };
         USize m_size{ 0 };
         USize m_capacity{ 0 };
-        Memory::SystemMemoryResource m_defaultRes{};
+        Cap::SystemMemoryResource m_defaultRes{};
         AllocPolicy m_alloc{};
         USize m_align{ 1 };
         USize m_elemSize{ 1 };
 
         RawVector() noexcept = default;
         RawVector(USize elemSize, USize align) noexcept : m_align(align), m_elemSize(elemSize) {
-            if constexpr (std::is_same_v<AllocPolicy, Memory::Allocator>) { m_alloc = AllocPolicy(&m_defaultRes); }
+            if constexpr (std::is_same_v<AllocPolicy, Cap::Allocator>) { m_alloc = AllocPolicy(&m_defaultRes); }
         }
         RawVector(USize elemSize, USize align, AllocPolicy a) noexcept : m_alloc(a), m_align(align), m_elemSize(elemSize) {}
 
         [[nodiscard]] Status TryReallocate(USize newCap) noexcept {
             if (!m_data) return Err(StatusDomain::System(), StatusCode::InvalidArgument);
-            if constexpr (std::is_same_v<AllocPolicy, Memory::Allocator>) {
+            if constexpr (std::is_same_v<AllocPolicy, Cap::Allocator>) {
                 const USize newBytes = newCap * m_elemSize;
                 const USize oldBytes = m_capacity * m_elemSize;
                 if (newBytes > oldBytes) {
@@ -33,7 +33,7 @@ export namespace Containers {
                         return Ok(StatusDomain::System());
                     }
                 }
-                auto rb = m_alloc.resource->Reallocate(Memory::MemoryBlock{ m_data, oldBytes }, newBytes, m_align);
+                auto rb = m_alloc.resource->Reallocate(Cap::MemoryBlock{ m_data, oldBytes }, newBytes, m_align);
                 if (!rb.IsOk()) return rb.Error();
                 m_data = rb.Value().ptr;
                 m_capacity = newCap;
@@ -46,11 +46,11 @@ export namespace Containers {
         [[nodiscard]] auto Alloc(USize cap) noexcept { return m_alloc.Alloc(cap * m_elemSize, m_align); }
         void Free() noexcept {
             if (!m_data || m_capacity == 0) return;
-            m_alloc.Free(Memory::MemoryBlock{ m_data, m_capacity * m_elemSize }, m_align);
+            m_alloc.Free(Cap::MemoryBlock{ m_data, m_capacity * m_elemSize }, m_align);
             m_data = nullptr; m_capacity = 0; m_size = 0;
         }
     };
-    template<typename T, typename AllocPolicy = Memory::Allocator>
+    template<typename T, typename AllocPolicy = Cap::Allocator>
     struct Vector {
         RawVector<AllocPolicy> m_raw{ sizeof(T), alignof(T) };
 
@@ -87,20 +87,20 @@ export namespace Containers {
                 } else {
                     auto* dst = static_cast<T*>(newPtr);
                     USize constructed = 0;
-                    if constexpr (ExceptionsEnabled()) {
-                        try {
-                            for (USize i = 0; i < m_raw.m_size; ++i) { ConstructAt<T>(static_cast<void*>(dst + i), Move(static_cast<T*>(m_raw.m_data)[i])); ++constructed; }
-                        } catch (...) {
-                            for (USize i = 0; i < constructed; ++i) { DestroyAt<T>(dst + i); }
-                            m_raw.m_alloc.Free(Memory::MemoryBlock{ newPtr, bytes }, m_raw.m_align);
-                            return Err(StatusDomain::System(), StatusCode::Failed);
-                        }
-                    } else {
-                        for (USize i = 0; i < m_raw.m_size; ++i) { ConstructAt<T>(static_cast<void*>(dst + i), Move(static_cast<T*>(m_raw.m_data)[i])); }
+#if CFG_EXCEPTIONS
+                    try {
+                        for (USize i = 0; i < m_raw.m_size; ++i) { ConstructAt<T>(static_cast<void*>(dst + i), Move(static_cast<T*>(m_raw.m_data)[i])); ++constructed; }
+                    } catch (...) {
+                        for (USize i = 0; i < constructed; ++i) { DestroyAt<T>(dst + i); }
+                        m_raw.m_alloc.Free(Cap::MemoryBlock{ newPtr, bytes }, m_raw.m_align);
+                        return Err(StatusDomain::System(), StatusCode::Failed);
                     }
+#else
+                    for (USize i = 0; i < m_raw.m_size; ++i) { ConstructAt<T>(static_cast<void*>(dst + i), Move(static_cast<T*>(m_raw.m_data)[i])); }
+#endif
                     for (USize i = 0; i < m_raw.m_size; ++i) { DestroyAt<T>(static_cast<T*>(m_raw.m_data) + i); }
                 }
-                m_raw.m_alloc.Free(Memory::MemoryBlock{ m_raw.m_data, m_raw.m_capacity * static_cast<USize>(sizeof(T)) }, m_raw.m_align);
+                m_raw.m_alloc.Free(Cap::MemoryBlock{ m_raw.m_data, m_raw.m_capacity * static_cast<USize>(sizeof(T)) }, m_raw.m_align);
             }
             m_raw.m_data = newPtr;
             m_raw.m_capacity = newCap;
@@ -327,7 +327,7 @@ export namespace Containers {
                     for (USize i = 0; i < m_raw.m_size; ++i) { ConstructAt<T>(static_cast<void*>(dst + i), Move(static_cast<T*>(m_raw.m_data)[i])); }
                     for (USize i = 0; i < m_raw.m_size; ++i) { DestroyAt<T>(static_cast<T*>(m_raw.m_data) + i); }
                 }
-                m_raw.m_alloc.Free(Memory::MemoryBlock{ m_raw.m_data, m_raw.m_capacity * static_cast<USize>(sizeof(T)) }, m_raw.m_align);
+                m_raw.m_alloc.Free(Cap::MemoryBlock{ m_raw.m_data, m_raw.m_capacity * static_cast<USize>(sizeof(T)) }, m_raw.m_align);
             }
             m_raw.m_data = newPtr;
             m_raw.m_capacity = newCap;

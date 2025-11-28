@@ -7,7 +7,7 @@ import <cstdio>;
 export module Test:Context;
 
 import Language;
-import Memory;
+import Cap.Memory;
 
 import :Core;
 
@@ -174,7 +174,7 @@ export namespace Test {
 
     class FrameAllocatorAdapter final : public ITestAllocator {
     public:
-        explicit FrameAllocatorAdapter(Memory::FrameAllocatorResource& resource) noexcept : m_resource(&resource) {}
+        explicit FrameAllocatorAdapter(Cap::FrameAllocatorResource& resource) noexcept : m_resource(&resource) {}
 
         [[nodiscard]] void* Allocate(UInt64 size, UInt32 alignment = 0) noexcept override {
             auto align = alignment == 0 ? static_cast<USize>(16) : static_cast<USize>(alignment);
@@ -204,7 +204,7 @@ export namespace Test {
         }
 
     private:
-        Memory::FrameAllocatorResource* m_resource;
+        Cap::FrameAllocatorResource* m_resource;
         Atomic<UInt64> m_currentUsed{0};
         Atomic<UInt64> m_peakUsed{0};
         Atomic<UInt64> m_allocationCount{0};
@@ -336,7 +336,7 @@ export namespace Test {
                                                 USize frameSize = 64u << 10) noexcept {
             static ConsoleTestLogger s_logger(level);
             static HighResolutionTestTimer s_timer;
-            static Memory::FrameAllocatorResource s_frame(frameSize);
+            static Cap::FrameAllocatorResource s_frame(frameSize);
             static FrameAllocatorAdapter s_allocator(s_frame);
             static FrameMemoryTracker s_tracker;
             return TestContext(s_logger, s_timer, s_allocator, s_tracker);
@@ -352,7 +352,7 @@ export namespace Test {
             return HighResolutionTestTimer();
         }
 
-        [[nodiscard]] inline FrameAllocatorAdapter CreateFrameAllocator(Memory::FrameAllocatorResource& resource) noexcept {
+        [[nodiscard]] inline FrameAllocatorAdapter CreateFrameAllocator(Cap::FrameAllocatorResource& resource) noexcept {
             return FrameAllocatorAdapter(resource);
         }
 

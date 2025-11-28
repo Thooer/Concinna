@@ -2,7 +2,7 @@ export module Containers:HashMap;
 
 import Language;
 import SIMD;
-import Memory;
+import Cap.Memory;
 import :String;
 import :Traits;
 
@@ -16,7 +16,7 @@ export namespace Containers {
     template<typename K>
     using DefaultHasher = DefaultHasher<K>;
 
-    template<typename K, typename V, typename Hasher = DefaultHasher<K>, typename AllocPolicy = Memory::Allocator>
+    template<typename K, typename V, typename Hasher = DefaultHasher<K>, typename AllocPolicy = Cap::Allocator>
     struct HashMap {
         static constexpr USize kGroupSize = 8;
         K* m_keys{ nullptr };
@@ -25,12 +25,12 @@ export namespace Containers {
         USize m_size{ 0 };
         USize m_capacity{ 0 };
         USize m_mask{ 0 };
-        Memory::SystemMemoryResource m_defaultRes{};
+        Cap::SystemMemoryResource m_defaultRes{};
         AllocPolicy m_alloc{};
-        Memory::MemoryBlock m_storage{};
+        Cap::MemoryBlock m_storage{};
         Hasher m_hasher{};
 
-        constexpr HashMap() noexcept { if constexpr (SameAs<AllocPolicy, Memory::Allocator>) { m_alloc = AllocPolicy(&m_defaultRes); } }
+        constexpr HashMap() noexcept { if constexpr (SameAs<AllocPolicy, Cap::Allocator>) { m_alloc = AllocPolicy(&m_defaultRes); } }
         constexpr explicit HashMap(AllocPolicy a) noexcept : m_alloc(a) {}
         HashMap(const HashMap&) = delete;
         HashMap& operator=(const HashMap&) = delete;
@@ -53,8 +53,8 @@ export namespace Containers {
             if (!nb.IsOk()) return nb.Error();
             auto base = static_cast<Byte*>(nb.Value().ptr);
             UIntPtr p = reinterpret_cast<UIntPtr>(base + static_cast<SSize>(ctrlBytes));
-            UIntPtr kptr = Memory::Alignment::AlignUp(p, static_cast<USize>(alignof(K)));
-            UIntPtr vptr = Memory::Alignment::AlignUp(kptr + keysBytes, static_cast<USize>(alignof(V)));
+            UIntPtr kptr = Cap::Alignment::AlignUp(p, static_cast<USize>(alignof(K)));
+            UIntPtr vptr = Cap::Alignment::AlignUp(kptr + keysBytes, static_cast<USize>(alignof(V)));
             UInt8* ns = base;
             K* nk = reinterpret_cast<K*>(kptr);
             V* nv = reinterpret_cast<V*>(vptr);
@@ -66,12 +66,12 @@ export namespace Containers {
                 if (m_storage.ptr) {
                     m_alloc.Free(m_storage, a);
                 } else {
-                    m_alloc.Free(Memory::MemoryBlock{ m_ctrl, m_capacity * static_cast<USize>(sizeof(UInt8)) }, alignof(UInt8));
-                    m_alloc.Free(Memory::MemoryBlock{ m_keys, m_capacity * static_cast<USize>(sizeof(K)) }, alignof(K));
-                    m_alloc.Free(Memory::MemoryBlock{ m_vals, m_capacity * static_cast<USize>(sizeof(V)) }, alignof(V));
+                    m_alloc.Free(Cap::MemoryBlock{ m_ctrl, m_capacity * static_cast<USize>(sizeof(UInt8)) }, alignof(UInt8));
+                    m_alloc.Free(Cap::MemoryBlock{ m_keys, m_capacity * static_cast<USize>(sizeof(K)) }, alignof(K));
+                    m_alloc.Free(Cap::MemoryBlock{ m_vals, m_capacity * static_cast<USize>(sizeof(V)) }, alignof(V));
                 }
             }
-            m_storage = Memory::MemoryBlock{ base, static_cast<USize>(nb.Value().size) };
+            m_storage = Cap::MemoryBlock{ base, static_cast<USize>(nb.Value().size) };
             m_ctrl = ns; m_keys = nk; m_vals = nv; m_capacity = c; m_mask = c - 1;
             return Ok(StatusDomain::System());
         }
@@ -241,11 +241,11 @@ export namespace Containers {
                 a = a < static_cast<USize>(alignof(V)) ? static_cast<USize>(alignof(V)) : a;
                 m_alloc.Free(m_storage, a);
             } else {
-                m_alloc.Free(Memory::MemoryBlock{ m_ctrl, m_capacity * static_cast<USize>(sizeof(UInt8)) }, alignof(UInt8));
-                m_alloc.Free(Memory::MemoryBlock{ m_keys, m_capacity * static_cast<USize>(sizeof(K)) }, alignof(K));
-                m_alloc.Free(Memory::MemoryBlock{ m_vals, m_capacity * static_cast<USize>(sizeof(V)) }, alignof(V));
+                m_alloc.Free(Cap::MemoryBlock{ m_ctrl, m_capacity * static_cast<USize>(sizeof(UInt8)) }, alignof(UInt8));
+                m_alloc.Free(Cap::MemoryBlock{ m_keys, m_capacity * static_cast<USize>(sizeof(K)) }, alignof(K));
+                m_alloc.Free(Cap::MemoryBlock{ m_vals, m_capacity * static_cast<USize>(sizeof(V)) }, alignof(V));
             }
-            m_storage = Memory::MemoryBlock{};
+            m_storage = Cap::MemoryBlock{};
             m_ctrl = nullptr; m_keys = nullptr; m_vals = nullptr; m_capacity = 0; m_mask = 0;
         }
 

@@ -4,7 +4,7 @@ add_module_from_dirs(Containers
   INTERFACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Interface
   BACKEND_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/Backends
 )
-target_link_libraries(Containers PRIVATE Language Memory Platform SIMD)
+target_link_libraries(Containers PUBLIC Language Memory Platform SIMD)
 apply_common_options(Containers)
 
 option(NOVA_BUILD_FOUNDATION_CONTAINERS_SAMPLES "Build Containers samples" OFF)

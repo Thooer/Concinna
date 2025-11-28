@@ -1,12 +1,15 @@
 module;
-export module Math:LWC;
+export module Cap.Math:LWC;
 import Language;
 import SIMD;
 import :Storage;
 import :Compute;
-export namespace Math {
+export namespace Cap {
     struct LWCConverter {
-        static Vector3 SubAndCast(const DVector3& world_pos, const DVector3& cam_pos) noexcept;
+        static Vector3 SubAndCast(const DVector3& world_pos, const DVector3& cam_pos) noexcept {
+            DVector3 d{ world_pos.x - cam_pos.x, world_pos.y - cam_pos.y, world_pos.z - cam_pos.z };
+            return Vector3{ static_cast<Scalar>(d.x), static_cast<Scalar>(d.y), static_cast<Scalar>(d.z) };
+        }
 
         template<USize BlockSize>
         static inline void BatchConvert(const SoAChunkDVector3<BlockSize>& world_positions,
@@ -26,9 +29,9 @@ export namespace Math {
                                                SoAChunkVector3<BlockSize>& local_positions,
                                                USize count) noexcept {
             DVector3Packet<4> cam{ 
-                SIMD::Packet<double, 4>{ _mm256_set1_pd(camera_position.x) },
-                SIMD::Packet<double, 4>{ _mm256_set1_pd(camera_position.y) },
-                SIMD::Packet<double, 4>{ _mm256_set1_pd(camera_position.z) }
+                SIMD::Set1<4>(camera_position.x),
+                SIMD::Set1<4>(camera_position.y),
+                SIMD::Set1<4>(camera_position.z)
             };
             USize i = 0;
             for (; i + 4 <= count; i += 4) {

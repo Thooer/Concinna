@@ -6,7 +6,6 @@ import :Definitions;
 export namespace Cap {
     template<typename T>
     using StatusResult = Expect<T>;
-    using USize = USize;
 
     /// @brief 内存资源抽象基类 (ABI Stable)
     /// @details 定义了基于区域的内存管理原语。所有操作均为 noexcept。

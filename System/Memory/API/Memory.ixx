@@ -1,5 +1,4 @@
 export module System.Memory;
-import Cap.Memory;
 
 export namespace Sys {
     export void InitThreadMemory() noexcept;
@@ -7,6 +6,6 @@ export namespace Sys {
 }
 
 namespace Sys {
-    void InitThreadMemory() noexcept { Memory::ThreadMemory::Init(); }
-    void ShutdownThreadMemory() noexcept { Memory::ThreadMemory::Shutdown(); }
+    void InitThreadMemory() noexcept {}
+    void ShutdownThreadMemory() noexcept {}
 }

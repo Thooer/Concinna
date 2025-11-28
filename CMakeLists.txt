@@ -29,6 +29,11 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Enable C++20 module dependency scanning across targets (MSVC/VS generator)
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API 1)
+
 # Set project root
 set(ROOT "${CMAKE_SOURCE_DIR}" CACHE PATH "Nova project root")
 
@@ -69,6 +74,8 @@ function(apply_common_options target)
   if(MSVC)
     # Explicitly set latest C++ standard to enable 'import' on all targets
     target_compile_options(${target} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/std:c++latest>)
+    # Enable full standard modules support including partitions on MSVC
+    target_compile_options(${target} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/experimental:module>)
   endif()
 
   # Exceptions/RTTI defines and flags
@@ -164,6 +171,7 @@ add_subdirectory(Primitive/IO)
 add_subdirectory(Primitive/File)
 add_subdirectory(Primitive/Input)
 add_subdirectory(Primitive/Audio)
+add_subdirectory(Primitive/SIMD)
 add_subdirectory(Primitive/Debug)
 add_subdirectory(Primitive/Clipboard)
 add_subdirectory(Primitive/System)
@@ -185,12 +193,17 @@ endif()
 
 # Capability layer
 add_subdirectory(Capability/ConcurrentContainers)
+add_subdirectory(Capability/Containers)
 add_subdirectory(Capability/Concurrency)
 add_subdirectory(Capability/Memory)
+add_subdirectory(Capability/Math)
+add_subdirectory(Capability/Random)
+add_subdirectory(Capability/Algorithms)
 
 # System layer
 add_subdirectory(System/Memory)
 add_subdirectory(System/Job)
+add_subdirectory(System/Test)
 
 # Third-party tools
 add_subdirectory(ThirdParty/Tracy)

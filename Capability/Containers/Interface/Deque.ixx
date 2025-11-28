@@ -1,11 +1,10 @@
 export module Containers:Deque;
-
 import Language;
-import Memory;
+import Cap.Memory;
 import <type_traits>;
 
 export namespace Containers {
-    template<typename T, typename AllocPolicy = Memory::Allocator>
+    template<typename T, typename AllocPolicy = Cap::Allocator>
     struct Deque {
         static constexpr USize kChunkBytes = 4096;
         T** m_chunks{ nullptr };
@@ -16,10 +15,10 @@ export namespace Containers {
         USize m_mask{ 0 };
         USize m_chunkMask{ 0 };
         USize m_chunkShift{ 0 };
-        Memory::SystemMemoryResource m_defaultRes{};
+        Cap::SystemMemoryResource m_defaultRes{};
         AllocPolicy m_alloc{};
 
-        constexpr Deque() noexcept { if constexpr (std::is_same_v<AllocPolicy, Memory::Allocator>) { m_alloc = AllocPolicy(&m_defaultRes); } }
+        constexpr Deque() noexcept { if constexpr (std::is_same_v<AllocPolicy, Cap::Allocator>) { m_alloc = AllocPolicy(&m_defaultRes); } }
         constexpr explicit Deque(AllocPolicy a) noexcept : m_alloc(a) {}
         Deque(const Deque&) = delete;
         Deque& operator=(const Deque&) = delete;
@@ -44,7 +43,10 @@ export namespace Containers {
                 if (!cb.IsOk()) { return cb.Error(); }
                 newChunks[i] = static_cast<T*>(cb.Value().ptr);
             }
-            if (m_chunks) { m_alloc.Free(Memory::MemoryBlock{ m_chunks, m_chunkCount * static_cast<USize>(sizeof(T*)) }, alignof(T*)); }
+            if (m_chunks) {
+                Cap::MemoryBlock blk{ m_chunks, m_chunkCount * static_cast<USize>(sizeof(T*)) };
+                m_alloc.Free(blk, alignof(T*));
+            }
             m_chunks = newChunks; m_chunkCount = needChunksPow2;
             m_mask = (m_chunkCount * m_itemsPerChunk) ? ((m_chunkCount * m_itemsPerChunk) - 1) : 0;
             m_chunkMask = m_itemsPerChunk ? (m_itemsPerChunk - 1) : 0;
@@ -87,9 +89,15 @@ export namespace Containers {
         void ReleaseStorage() noexcept {
             if (!m_chunks) return;
             for (USize i = 0; i < m_chunkCount; ++i) {
-                if (m_chunks[i]) { m_alloc.Free(Memory::MemoryBlock{ m_chunks[i], m_itemsPerChunk * static_cast<USize>(sizeof(T)) }, alignof(T)); }
+                if (m_chunks[i]) {
+                    Cap::MemoryBlock blk{ m_chunks[i], m_itemsPerChunk * static_cast<USize>(sizeof(T)) };
+                    m_alloc.Free(blk, alignof(T));
+                }
             }
-            m_alloc.Free(Memory::MemoryBlock{ m_chunks, m_chunkCount * static_cast<USize>(sizeof(T*)) }, alignof(T*));
+            {
+                Cap::MemoryBlock blk{ m_chunks, m_chunkCount * static_cast<USize>(sizeof(T*)) };
+                m_alloc.Free(blk, alignof(T*));
+            }
             m_chunks = nullptr; m_chunkCount = 0; m_itemsPerChunk = 0; m_size = 0; m_headIndex = 0;
         }
 

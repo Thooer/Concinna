@@ -75,9 +75,9 @@ export namespace Cap {
         explicit PoolAllocatorResource(USize blockSize, USize capacity) noexcept;
         ~PoolAllocatorResource() noexcept;
 
-        [[nodiscard]] Expect<MemoryBlock> Allocate(USize size, USize align) noexcept override;
+        [[nodiscard]] StatusResult<MemoryBlock> Allocate(USize size, USize align) noexcept override;
         void Deallocate(MemoryBlock block, USize align) noexcept override;
-        [[nodiscard]] Expect<MemoryBlock> Reallocate(MemoryBlock block, USize newSize, USize align) noexcept override;
+        [[nodiscard]] StatusResult<MemoryBlock> Reallocate(MemoryBlock block, USize newSize, USize align) noexcept override;
         [[nodiscard]] bool IsEqual(const IMemoryResource& other) const noexcept override;
         [[nodiscard]] bool IsOwnedByCurrentThread() const noexcept override;
         void Reset() noexcept override;

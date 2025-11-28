@@ -1,21 +1,20 @@
 export module Containers:String;
-
 import Language;
-import Memory;
+import Cap.Memory;
 import <type_traits>;
 
 export namespace Containers {
-    template<typename AllocPolicy = Memory::Allocator>
+    template<typename AllocPolicy = Cap::Allocator>
     struct String {
         static constexpr USize kSSOCap = 24;
-        Memory::SystemMemoryResource m_defaultRes{};
+        Cap::SystemMemoryResource m_defaultRes{};
         AllocPolicy m_alloc{};
         Char8* m_data{ nullptr };
         USize m_size{ 0 };
         USize m_capacity{ 0 };
         Char8 m_sso[kSSOCap]{};
 
-        String() noexcept : m_data(m_sso), m_capacity(kSSOCap - 1) { if constexpr (std::is_same_v<AllocPolicy, Memory::Allocator>) { m_alloc = AllocPolicy(&m_defaultRes); } }
+        String() noexcept : m_data(m_sso), m_capacity(kSSOCap - 1) { if constexpr (std::is_same_v<AllocPolicy, Cap::Allocator>) { m_alloc = AllocPolicy(&m_defaultRes); } }
         explicit String(AllocPolicy a) noexcept : m_alloc(a), m_data(m_sso), m_capacity(kSSOCap - 1) {}
         String(const String&) = delete;
         String& operator=(const String&) = delete;
@@ -31,22 +30,15 @@ export namespace Containers {
             USize need = n + 1;
             if (need <= m_capacity) return Ok(StatusDomain::System());
             USize newCap = need;
-            if (m_data != m_sso) {
-                if constexpr (std::is_same_v<AllocPolicy, Memory::Allocator>) {
-                    auto rr = m_alloc.resource->Reallocate(Memory::MemoryBlock{ m_data, m_capacity + 1 }, newCap, alignof(Char8));
-                    if (rr.IsOk()) {
-                        m_data = static_cast<Char8*>(rr.Value().ptr);
-                        m_capacity = newCap - 1;
-                        EnsureTerminated();
-                        return Ok(StatusDomain::System());
-                    }
-                }
-            }
+            // 简化：直接新分配并拷贝，避免后端差异导致的模块解析问题
             auto nb = m_alloc.Alloc(newCap, alignof(Char8));
             if (!nb.IsOk()) return nb.Error();
             void* np = nb.Value().ptr;
             if (m_size) { MemMove(np, m_data, m_size); }
-            if (m_data != m_sso && m_capacity) { m_alloc.Free(Memory::MemoryBlock{ m_data, m_capacity + 1 }, alignof(Char8)); }
+            if (m_data != m_sso && m_capacity) {
+                Cap::MemoryBlock blk{ m_data, m_capacity + 1 };
+                m_alloc.Free(blk, alignof(Char8));
+            }
             m_data = static_cast<Char8*>(np);
             m_capacity = newCap - 1;
             EnsureTerminated();
@@ -76,7 +68,10 @@ export namespace Containers {
     private:
         void EnsureTerminated() noexcept { if (m_data) { m_data[m_size] = static_cast<Char8>(0); } }
         void ReleaseHeap() noexcept {
-            if (m_data != m_sso && m_data) { m_alloc.Free(Memory::MemoryBlock{ m_data, m_capacity + 1 }, alignof(Char8)); }
+            if (m_data != m_sso && m_data) {
+                Cap::MemoryBlock blk{ m_data, m_capacity + 1 };
+                m_alloc.Free(blk, alignof(Char8));
+            }
             m_data = m_sso; m_capacity = kSSOCap - 1;
         }
     };

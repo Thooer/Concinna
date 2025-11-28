@@ -1,7 +1,7 @@
 export module Containers:RingBuffer;
 
 import Language;
-import Memory;
+import Cap.Memory;
 
 export namespace Containers {
     template<typename T>
@@ -15,7 +15,7 @@ export namespace Containers {
         void Init(T* buffer, USize capacity) noexcept {
             if (!buffer || capacity == 0) { m_data = nullptr; m_capacity = 0; m_mask = 0; m_head = m_tail = 0; return; }
             // 要求容量为 2 的幂，以便使用按位与掩码
-            if (!Memory::Alignment::IsPowerOfTwo(capacity)) { m_data = nullptr; m_capacity = 0; m_mask = 0; m_head = m_tail = 0; return; }
+            if (!Cap::Alignment::IsPowerOfTwo(capacity)) { m_data = nullptr; m_capacity = 0; m_mask = 0; m_head = m_tail = 0; return; }
             m_data = buffer; m_capacity = capacity; m_mask = capacity - 1; m_head = m_tail = 0;
         }
 
