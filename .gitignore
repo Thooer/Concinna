@@ -5,6 +5,7 @@ build/
 .idea/
 build/**
 out/
+/vcpkg_installed/*
 
 # CMake/VS generated files
 CMakeCache.txt

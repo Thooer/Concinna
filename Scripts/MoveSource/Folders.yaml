@@ -1,13 +1,14 @@
 # 文件夹范围配置
 .trae:
   - rules
-# Language:
-# Primitive:
+Language:
+Primitive:
 Capability:
-  - Concurrency
-  - Memory
-  - Containers
-  - Algorithms
+System:
+Egnine:
+Simulation:
+Dev:
+Editor:
   # - Random
   # - Crypto
   - Math
