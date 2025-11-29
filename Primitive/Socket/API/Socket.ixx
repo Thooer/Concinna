@@ -1,9 +1,9 @@
 module;
 export module Prm.Socket;
-import Element;
-import Flow;
-import Text;
-import Paradigm;
+import Lang.Element;
+import Lang.Flow;
+import Lang.Text;
+import Lang.Paradigm;
 export import :Types;
 export import :Ops;
 

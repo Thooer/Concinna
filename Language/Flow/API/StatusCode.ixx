@@ -1,5 +1,5 @@
-export module Flow:StatusCode;
-import Element;
+export module Lang.Flow:StatusCode;
+import Lang.Element;
 import :StatusDomain;
 
 export struct StatusCode {

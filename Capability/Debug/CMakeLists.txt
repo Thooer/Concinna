@@ -1,5 +1,5 @@
-add_module_from_dirs(Debug
+add_module_from_dirs(Cap.Debug
   INTERFACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Interface
 )
-target_link_libraries(Debug PRIVATE Language Platform)
-apply_common_options(Debug)
+target_link_libraries(Cap.Debug PRIVATE Lang Platform)
+apply_common_options(Cap.Debug)

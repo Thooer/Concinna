@@ -1,7 +1,7 @@
 module;
 export module Engine.Renderer.FrameGraphConflictSmoke;
 
-import Language;
+import Lang;
 import <cstdio>;
 import Foundation.Memory;
 import Foundation.IO;

@@ -1,8 +1,8 @@
 module Prm.Debug;
 
 import Prm.Debug;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 
 using namespace Prm;
 

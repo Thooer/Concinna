@@ -1,7 +1,7 @@
 module;
 export module Engine.Physics.PhysicsSmoke;
 
-import Language;
+import Lang;
 import Engine.Physics;
 
 namespace Nova::Samples::EnginePhysics {

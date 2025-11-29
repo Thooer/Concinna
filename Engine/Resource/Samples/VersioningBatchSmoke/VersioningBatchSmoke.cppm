@@ -1,7 +1,7 @@
 module;
 export module Engine.Resource.VersioningBatchSmoke;
 
-import Language;
+import Lang;
 import Engine.Resource;
 import Foundation.Memory;
 import Foundation.Containers;

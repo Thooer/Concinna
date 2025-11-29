@@ -1,7 +1,7 @@
 module;
 export module Engine.Resource:StreamLoader;
 
-import Language;
+import Lang;
 import Foundation.IO;
 
 export namespace Engine::Resource {

@@ -1,7 +1,7 @@
 module;
 module Engine.Scene;
 
-import Language;
+import Lang;
 import Foundation.Memory;
 
 namespace Engine::Scene {

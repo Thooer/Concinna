@@ -1,7 +1,7 @@
 module;
 export module Engine.Renderer.FrameGraphAsyncAliasSmoke;
 
-import Language;
+import Lang;
 import Foundation.Memory;
 import Engine.Scene;
 import Engine.Renderer;

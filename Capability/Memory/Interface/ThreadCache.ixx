@@ -1,6 +1,6 @@
 export module Cap.Memory:ThreadCache;
 
-import Language;
+import Lang;
 import :Definitions;
 
 export namespace Cap {

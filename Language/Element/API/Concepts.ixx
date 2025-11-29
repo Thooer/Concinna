@@ -5,7 +5,7 @@ module;
 #include <compare>
 #include <utility>
 
-export module Element:Concepts;
+export module Lang.Element:Concepts;
 
 import :Traits;
 

@@ -1,6 +1,6 @@
 export module AlgorithmsTest;
 
-import Language;
+import Lang;
 import Cap.Algorithms;
 import <cstdio>;
 

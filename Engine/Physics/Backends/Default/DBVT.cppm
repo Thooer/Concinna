@@ -1,7 +1,7 @@
 module;
 module Engine.Physics:DBVT;
 
-import Language;
+import Lang;
 import Foundation.Containers;
 import Foundation.Memory;
 import :Types;

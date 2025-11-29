@@ -1,7 +1,7 @@
 module;
 export module Engine.Renderer:Validator;
 
-import Language;
+import Lang;
 import :FrameGraph;
 import Foundation.Memory;
 

@@ -1,4 +1,4 @@
-export module Element:Array;
+export module Lang.Element:Array;
 import :Types;
 
 export template<typename T, USize N>
@@ -14,5 +14,4 @@ struct Array {
     [[nodiscard]] constexpr const T* begin() const noexcept { return m_data; }
     [[nodiscard]] constexpr const T* end() const noexcept { return m_data + N; }
 };
-
 

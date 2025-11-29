@@ -1,7 +1,7 @@
 module;
 export module Engine.Physics:World;
 
-import Language;
+import Lang;
 import :Types;
 import Foundation.Containers;
 import :Collision;

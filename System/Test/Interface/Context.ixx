@@ -4,14 +4,15 @@ import <chrono>;
 import <cstdarg>;
 import <cstdio>;
 
-export module Test:Context;
+export module Sys.Job.Test:Context;
 
-import Language;
+import Lang;
 import Cap.Memory;
+import Prm.Sync;
 
 import :Core;
 
-export namespace Test {
+export namespace Sys {
 
     enum class LogLevel : UInt8 {
         Trace,
@@ -180,9 +181,9 @@ export namespace Test {
             auto align = alignment == 0 ? static_cast<USize>(16) : static_cast<USize>(alignment);
             auto block = m_resource->Allocate(static_cast<USize>(size), align);
             if (!block.Ok()) { return nullptr; }
-            auto used = m_currentUsed.fetch_add(block.Value().size) + block.Value().size;
-            if (used > m_peakUsed.load()) { m_peakUsed.store(used); }
-            m_allocationCount.fetch_add(1);
+            m_currentUsed += block.Value().size;
+            if (m_currentUsed > m_peakUsed) { m_peakUsed = m_currentUsed; }
+            ++m_allocationCount;
             return block.Value().ptr;
         }
 
@@ -192,22 +193,22 @@ export namespace Test {
 
         [[nodiscard]] UInt64 GetTotalAllocated() const noexcept override { return m_resource->m_capacity; }
         [[nodiscard]] UInt64 GetCurrentUsed() const noexcept override { return m_resource->Offset(); }
-        [[nodiscard]] UInt64 GetPeakUsed() const noexcept override { return m_peakUsed.load(); }
-        [[nodiscard]] UInt32 GetAllocationCount() const noexcept override { return static_cast<UInt32>(m_allocationCount.load()); }
+        [[nodiscard]] UInt64 GetPeakUsed() const noexcept override { return m_peakUsed; }
+        [[nodiscard]] UInt32 GetAllocationCount() const noexcept override { return static_cast<UInt32>(m_allocationCount); }
         [[nodiscard]] UInt32 GetAlignment() const noexcept override { return m_alignment; }
         void SetAlignment(UInt32 alignment) noexcept override { m_alignment = alignment == 0 ? 16u : alignment; }
         void Reset() noexcept override {
             m_resource->Reset();
-            m_currentUsed.store(0);
-            m_peakUsed.store(0);
-            m_allocationCount.store(0);
+            m_currentUsed = 0;
+            m_peakUsed = 0;
+            m_allocationCount = 0;
         }
 
     private:
         Cap::FrameAllocatorResource* m_resource;
-        Atomic<UInt64> m_currentUsed{0};
-        Atomic<UInt64> m_peakUsed{0};
-        Atomic<UInt64> m_allocationCount{0};
+        UInt64 m_currentUsed{0};
+        UInt64 m_peakUsed{0};
+        UInt64 m_allocationCount{0};
         UInt32 m_alignment{16};
     };
 

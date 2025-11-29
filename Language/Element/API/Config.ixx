@@ -1,4 +1,4 @@
-export module Element:Config;
+export module Lang.Element:Config;
 
 
 #if defined(ENABLE_PRINT)

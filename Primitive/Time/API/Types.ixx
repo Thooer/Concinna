@@ -1,5 +1,5 @@
 export module Prm.Time:Types;
-import Element;
+import Lang.Element;
 
 export namespace Prm {
     using TimePoint = Int64;

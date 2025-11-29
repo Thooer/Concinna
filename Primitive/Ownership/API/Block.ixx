@@ -1,5 +1,5 @@
 export module Prm.Ownership:Block;
-import Element;
+import Lang.Element;
 
 export namespace Prm {
     struct MemoryBlock {

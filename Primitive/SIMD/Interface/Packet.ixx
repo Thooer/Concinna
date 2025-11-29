@@ -1,6 +1,6 @@
 module;
 export module SIMD:Packet;
-import Language;
+import Lang;
 import <immintrin.h>;
 
 export namespace SIMD {

@@ -1,12 +1,12 @@
 module;
 
-export module Test:Registration;
+export module Sys.Job.Test:Registration;
 
-import Language;
+import Lang;
 
 import :Core;
 
-export namespace Test {
+export namespace Sys {
 
     struct TestEntry {
         const char* category{nullptr};

@@ -1,4 +1,4 @@
-export module Flow;
+export module Lang.Flow;
 
 export import :Functional;
 export import :Expect;

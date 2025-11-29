@@ -1,6 +1,6 @@
 export module Cap.Concurrency:Job;
 
-import Language;
+import Lang;
 
 export namespace Cap {
     enum class QoS : UInt8 { Normal = 0, High = 1 };

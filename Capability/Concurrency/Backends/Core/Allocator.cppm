@@ -1,5 +1,5 @@
 module Cap.Concurrency;
-import Language;
+import Lang;
 import Memory;
 import :Allocator;
 

@@ -1,5 +1,5 @@
-export module Reflection:EnumFuncs;
-import Element;
+export module Lang.Reflection:EnumFuncs;
+import Lang.Element;
 import :Reflectable;
 
 export template<ReflectableEnum E>

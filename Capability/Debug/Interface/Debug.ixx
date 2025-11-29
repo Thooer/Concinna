@@ -1,7 +1,8 @@
 module;
 export module Debug;
-import Language;
-import Platform;
+import Lang;
+import Prm.IO;
+import Prm.Debug;
 
 namespace { using CrashHandler = void(*)(const char*) noexcept; CrashHandler g_crashHandler = nullptr; }
 
@@ -13,7 +14,7 @@ export namespace Debug {
     class ConsoleSink : public ILogSink {
     public:
         void Write(const LogRecord& r) noexcept override {
-            auto h = Platform::File::Stdout();
+            auto h = Prm::File::Stdout();
             WriteStr(h, "[");
             WriteStr(h, LevelName(r.level));
             WriteStr(h, "] ");
@@ -31,21 +32,21 @@ export namespace Debug {
             WriteStr(h, "\n");
         }
     private:
-        static void WriteStr(Platform::FileHandle h, const char* s) noexcept {
+        static void WriteStr(Prm::FileHandle h, const char* s) noexcept {
             if (!s) return;
             USize n = 0; while (s[n] != '\0') ++n;
-            (void)Platform::File::Write(h, reinterpret_cast<const Byte*>(s), n);
+            (void)Prm::File::Write(h, reinterpret_cast<const Byte*>(s), n);
         }
-        static void WriteArg(Platform::FileHandle h, const FormatArg& a) noexcept {
+        static void WriteArg(Prm::FileHandle h, const FormatArg& a) noexcept {
             if (a.kind == FormatArg::Kind::Str) {
-                (void)Platform::File::Write(h, reinterpret_cast<const Byte*>(a.u.str.data), a.u.str.size);
+                (void)Prm::File::Write(h, reinterpret_cast<const Byte*>(a.u.str.data), a.u.str.size);
                 return;
             }
             StaticString<64> tmp;
             FormatArg arr[1]{ a };
             (void)tmp.AppendFormat(StringView("{}"), Span<const FormatArg>(arr, 1));
             const auto v = tmp.View();
-            (void)Platform::File::Write(h, reinterpret_cast<const Byte*>(v.data()), v.size());
+            (void)Prm::File::Write(h, reinterpret_cast<const Byte*>(v.data()), v.size());
         }
         static const char* LevelName(LogLevel lv) noexcept {
             switch (lv) {
@@ -62,7 +63,7 @@ export namespace Debug {
     class RotatingFileSink : public ILogSink {
     public:
         RotatingFileSink(const char* basePath, UInt64 maxBytes) noexcept : m_base(basePath), m_max(maxBytes) { OpenNew(); }
-        ~RotatingFileSink() noexcept { if (m_file.Get()) (void)Platform::File::Close(m_file); }
+        ~RotatingFileSink() noexcept { if (m_file) (void)Prm::File::Close(m_file); }
         void Write(const LogRecord& r) noexcept override {
             CheckRotate();
             WriteStr("[");
@@ -94,18 +95,18 @@ export namespace Debug {
             name[n++] = '.';
             name[n++] = 'l'; name[n++] = 'o'; name[n++] = 'g';
             name[n] = '\0';
-            auto e = Platform::File::Open(StringView(name), Platform::FileOpenMode::Write, Platform::FileShareMode::Read);
+            auto e = Prm::File::Open(Span<const Char8>(reinterpret_cast<const Char8*>(name), n), Prm::FileOpenMode::Write, Prm::FileShareMode::Read);
             if (e.IsOk()) { m_file = e.Value(); m_size = 0; }
         }
         void CheckRotate() noexcept {
             if (m_max == 0) return;
-            if (m_size >= m_max) { if (m_file.Get()) (void)Platform::File::Close(m_file); ++m_index; OpenNew(); }
+            if (m_size >= m_max) { if (m_file) (void)Prm::File::Close(m_file); ++m_index; OpenNew(); }
         }
         void WriteStr(const char* s) noexcept {
             if (!s) return;
             USize n = 0; while (s[n] != '\0') ++n;
             m_size += n + 1;
-            (void)Platform::File::Write(m_file, reinterpret_cast<const Byte*>(s), n);
+            (void)Prm::File::Write(m_file, reinterpret_cast<const Byte*>(s), n);
         }
         static const char* LevelName(LogLevel lv) noexcept {
             switch (lv) {
@@ -120,17 +121,17 @@ export namespace Debug {
         }
         void WriteArg(const FormatArg& a) noexcept {
             if (a.kind == FormatArg::Kind::Str) {
-                (void)Platform::File::Write(m_file, reinterpret_cast<const Byte*>(a.u.str.data), a.u.str.size);
+                (void)Prm::File::Write(m_file, reinterpret_cast<const Byte*>(a.u.str.data), a.u.str.size);
                 return;
             }
             StaticString<64> tmp;
             FormatArg arr[1]{ a };
             (void)tmp.AppendFormat(StringView("{}"), Span<const FormatArg>(arr, 1));
             const auto v = tmp.View();
-            (void)Platform::File::Write(m_file, reinterpret_cast<const Byte*>(v.data()), v.size());
+            (void)Prm::File::Write(m_file, reinterpret_cast<const Byte*>(v.data()), v.size());
         }
         const char* m_base{};
-        Platform::FileHandle m_file{};
+        Prm::FileHandle m_file{};
         UInt64 m_size{};
         UInt64 m_max{};
         UInt32 m_index{};
@@ -143,30 +144,30 @@ export namespace Debug {
         void Write(const LogRecord& r) noexcept { for (USize i = 0; i < m_count; ++i) { if (m_sinks[i]) m_sinks[i]->Write(r); } }
         static void Panic(const char* msg) noexcept {
             if (g_crashHandler) { g_crashHandler(msg); }
-            auto h = Platform::File::Stdout();
+            auto h = Prm::File::Stdout();
             WriteStr(h, "PANIC: ");
             WriteStr(h, msg);
             WriteStr(h, "\n");
-            DebugBreak();
+            /* break omitted */
         }
         static void PanicFormat(StringView fmt, Span<const FormatArg> args) noexcept {
             StaticString<1024> buf;
             buf.Append(StringView("PANIC: "));
             (void)buf.AppendFormat(fmt, args);
-            auto h = Platform::File::Stdout();
+            auto h = Prm::File::Stdout();
             const auto v = buf.View();
             USize n = v.size();
-            (void)Platform::File::Write(h, reinterpret_cast<const Byte*>(v.data()), n);
+            (void)Prm::File::Write(h, reinterpret_cast<const Byte*>(v.data()), n);
             WriteStr(h, "\n");
-            DebugBreak();
+            /* break omitted */
         }
         static void Assert(bool cond, const char* msg) noexcept { if (!cond) Panic(msg); }
         static void SetCrashHandler(void(*fn)(const char*) noexcept) noexcept { g_crashHandler = fn; }
     private:
-        static void WriteStr(Platform::FileHandle h, const char* s) noexcept {
+        static void WriteStr(Prm::FileHandle h, const char* s) noexcept {
             if (!s) return;
             USize n = 0; while (s[n] != '\0') ++n;
-            (void)Platform::File::Write(h, reinterpret_cast<const Byte*>(s), n);
+            (void)Prm::File::Write(h, reinterpret_cast<const Byte*>(s), n);
         }
         static constexpr USize kMax = 8;
         ILogSink* m_sinks[kMax]{};

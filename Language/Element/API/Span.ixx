@@ -1,4 +1,4 @@
-export module Element:Span;
+export module Lang.Element:Span;
 import :Types;
 
 

@@ -1,6 +1,6 @@
 export module Prm.Window:Types;
-import Element;
-import Paradigm;
+import Lang.Element;
+import Lang.Paradigm;
 
 export namespace Prm {
     struct WindowHandleTag;
@@ -15,4 +15,5 @@ export namespace Prm {
 
     export enum class CursorMode : UInt32 { Normal = 0, Hidden, Locked };
     export using WndProcCallback = Int64(*)(void*, UInt32, UIntPtr, IntPtr);
+    export using RawEventCallback = void(*)(void*, UInt32, UIntPtr, IntPtr);
 }

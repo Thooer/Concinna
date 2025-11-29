@@ -1,5 +1,5 @@
-export module Flow:Status;
-import Element;
+export module Lang.Flow:Status;
+import Lang.Element;
 import :StatusCode;
 export struct Status {
     [[no_unique_address]] StatusCode code{};

@@ -1,8 +1,8 @@
 export module Cap.Concurrency:Counter;
 
-import Language;
-import Memory;
-import Prm.Sync:LockFree;
+import Lang;
+import Prm.Sync;
+import Cap.Memory;
 
 export namespace Cap {
     struct Counter {

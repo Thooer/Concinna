@@ -1,6 +1,6 @@
 export module Prm.Threading:Types;
-import Element;
-import Paradigm;
+import Lang.Element;
+import Lang.Paradigm;
 
 export namespace Prm {
     struct ThreadHandleTag;

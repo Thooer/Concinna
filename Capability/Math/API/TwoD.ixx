@@ -1,6 +1,6 @@
 module;
 export module Cap.Math:TwoD;
-import Language;
+import Lang;
 import :Storage;
 export namespace Cap {
     struct Vector2 { Scalar x; Scalar y; };

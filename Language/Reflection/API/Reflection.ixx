@@ -1,5 +1,5 @@
-export module Reflection;
-import Element;
+export module Lang.Reflection;
+import Lang.Element;
 export import :Reflectable;
 export import :TypeID;
 export import :TypeInfo;

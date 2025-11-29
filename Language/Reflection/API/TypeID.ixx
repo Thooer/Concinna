@@ -1,5 +1,5 @@
-export module Reflection:TypeID;
-import Element;
+export module Lang.Reflection:TypeID;
+import Lang.Element;
 import <concepts>;
 
 export struct TypeID {

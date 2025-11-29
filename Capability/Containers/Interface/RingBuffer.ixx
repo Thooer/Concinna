@@ -1,6 +1,6 @@
 export module Containers:RingBuffer;
 
-import Language;
+import Lang;
 import Cap.Memory;
 
 export namespace Containers {

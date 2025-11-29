@@ -5,7 +5,7 @@ import Foundation.IRSystem:IR.Core.ObjectDescriptor;
 import Foundation.IRSystem:Execution.Interpreter;
 import Foundation.IRSystem:IR.CPO;
 import Foundation.IRSystem:IR.Core.Diagnostics;
-import Language:Views;
+import Lang:Views;
 
 export namespace Foundation::IRSystem {
 

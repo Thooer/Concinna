@@ -13,8 +13,8 @@ module;
 
 export module PerformanceTest;
 
-import Language;
-import Language:Error;
+import Lang;
+import Lang:Error;
 import Test;
 import Test:Context;
 import Test:Assertions;

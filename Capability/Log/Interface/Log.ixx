@@ -1,10 +1,9 @@
 module;
 export module Log;
-import Language;
-import Platform;
-import Prm.Threading;
-import System.Memory;
-import Concurrency;
+import Lang;
+import Sys.Memory;
+import Prm.Sync;
+import Cap.ConcurrentContainers;
 import Debug;
 
 namespace {
@@ -23,13 +22,10 @@ export namespace Log {
         ~AsyncLogger() noexcept { Stop(); }
         void Start(SyncLogger& target) noexcept {
             m_target = &target;
-            m_running.Store(true, MemoryOrder::Release);
-            auto r = Prm::ThreadCreate(&ThreadProc, this);
-            if (r.IsOk()) m_thread = r.Value();
+            m_running.Store(true, Prm::MemoryOrder::Release);
         }
         void Stop() noexcept {
-            bool was = m_running.Exchange(false, MemoryOrder::AcqRel);
-            if (was && m_thread.Get()) { (void)Prm::ThreadJoin(m_thread); m_thread = Prm::ThreadHandle{}; }
+            (void)m_running.Exchange(false, Prm::MemoryOrder::AcqRel);
         }
         void Log(Level lv, const char* cat, const char* msg) noexcept {
             g_tlsBuf[g_tlsCount++] = Record{lv, cat, msg};
@@ -47,6 +43,14 @@ export namespace Log {
         }
         void Flush() noexcept {
             if (g_tlsCount > 0) { FlushTLS(); }
+            if (m_target) {
+                Record rec{};
+                for (;;) {
+                    auto r = m_queue.Dequeue(rec);
+                    if (!r.IsOk() || !r.Value()) break;
+                    m_target->Write(rec);
+                }
+            }
         }
     private:
         void FlushTLS() noexcept {
@@ -55,25 +59,8 @@ export namespace Log {
             }
             g_tlsCount = 0;
         }
-        static void ThreadProc(void* user) noexcept { static_cast<AsyncLogger*>(user)->Run(); }
-        void Run() noexcept {
-            Sys::InitThreadMemory();
-            for (;;) {
-                if (!m_running.Load(MemoryOrder::Acquire)) break;
-                if (g_tlsCount > 0) { FlushTLS(); }
-                Record rec{};
-                auto r = m_queue.Dequeue(rec);
-                if (r.IsOk() && r.Value()) {
-                    if (m_target) m_target->Write(rec);
-                } else {
-                    Prm::ThreadSleepMs(1);
-                }
-            }
-            Sys::ShutdownThreadMemory();
-        }
-        Concurrency::MPMCQueue<Record> m_queue{};
-        Prm::ThreadHandle m_thread{};
+        Cap::MPMCQueue<Record> m_queue{};
         SyncLogger* m_target{};
-        Atomic<bool> m_running{false};
+        Prm::Atomic<bool> m_running{false};
     };
 }

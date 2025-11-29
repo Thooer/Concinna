@@ -1,7 +1,7 @@
 module;
 export module Engine.Animation:Types;
 
-import Language;
+import Lang;
 import Foundation.Math;
 
 export namespace Engine::Animation {

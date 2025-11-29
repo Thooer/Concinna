@@ -1,7 +1,7 @@
-export module System.Task:TaskGraph;
-import Language;
+export module Sys.Task:TaskGraph;
+import Lang;
 import Memory;
-import System.Job;
+import Sys;
 import Prm.Ownership:Memory;
 
 export namespace Sys {

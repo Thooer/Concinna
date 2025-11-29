@@ -1,7 +1,7 @@
 export module Cap.Memory:SystemAllocator;
 
-import Language;
-import Flow;
+import Lang;
+import Lang.Flow;
 import Prm.Ownership;
 import <new>;
 import :Definitions;

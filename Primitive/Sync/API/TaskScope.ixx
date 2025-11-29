@@ -1,6 +1,6 @@
 export module Prm.Sync:TaskScope;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 import :Cancel;
 import <thread>;
 import <vector>;

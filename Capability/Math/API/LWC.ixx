@@ -1,6 +1,6 @@
 module;
 export module Cap.Math:LWC;
-import Language;
+import Lang;
 import SIMD;
 import :Storage;
 import :Compute;

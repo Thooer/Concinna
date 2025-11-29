@@ -1,9 +1,6 @@
 module;
-export module Engine.Renderer;
+export module Eng.Renderer;
 
 export import :RHI;
 export import :Types;
-export import :CommandList;
-export import :FrameGraph;
-export import :Simple;
-export import :Validator;
+// Minimal export set for RHI-only path

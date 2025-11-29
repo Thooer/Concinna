@@ -1,6 +1,6 @@
 export module Cap.Memory:IMemoryResource;
 
-import Language;
+import Lang;
 import :Definitions;
 
 export namespace Cap {

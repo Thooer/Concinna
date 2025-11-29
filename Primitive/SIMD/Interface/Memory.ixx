@@ -1,6 +1,6 @@
 module;
 export module SIMD:Memory;
-import Language;
+import Lang;
 import <immintrin.h>;
 import :Packet;
 

@@ -1,5 +1,5 @@
 export module Prm.Threading:Fiber;
-import Element;
+import Lang.Element;
 import :Types;
 
 export namespace Prm {

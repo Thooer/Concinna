@@ -1,5 +1,5 @@
 export module Cap.Math:Storage;
-import Language;
+import Lang;
 import <type_traits>;
 export namespace Cap {
     using Scalar = Float32;

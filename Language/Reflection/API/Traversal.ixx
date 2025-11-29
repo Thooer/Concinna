@@ -1,5 +1,5 @@
-export module Reflection:Traversal;
-import Element;
+export module Lang.Reflection:Traversal;
+import Lang.Element;
 import :Describe;
 import :Reflectable;
 import <utility>;

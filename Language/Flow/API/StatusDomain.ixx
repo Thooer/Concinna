@@ -1,5 +1,5 @@
-export module Flow:StatusDomain;
-import Element;
+export module Lang.Flow:StatusDomain;
+import Lang.Element;
 
 export using StatusCodeValue = Int32;
 export struct StatusDomain {

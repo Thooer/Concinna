@@ -1,7 +1,6 @@
-export module Flow:Functional;
-import Element;
-import Semantics;
-import :Error;
+export module Lang.Flow:Functional;
+import Lang.Element;
+import Lang.Semantics;
 import :Expect;
 import :StatusHelpers;
 

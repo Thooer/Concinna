@@ -1,6 +1,6 @@
 export module Containers:Intrusive;
 
-import Language;
+import Lang;
 
 export namespace Containers {
     template<typename T>

@@ -1,17 +1,16 @@
 module;
 export module Engine.Runtime:Types;
 
-import Language;
-import Foundation.Time;
-import Foundation.Memory;
+import Lang;
+import Prm.Time;
 
 export namespace Engine {
-    using Language::USize;
-    using Language::Int32;
+    using USize = ::USize;
+    using Int32 = ::Int32;
 
     struct CoreConfig { USize maxSystems{64}; };
-    struct CoreFrameCtx { Foundation::Time::Timestamp frameStart{0}; Foundation::Time::Duration frameDuration{0}; };
-    struct FrameContext { Foundation::Time::Timestamp ts{0}; ::Foundation::Memory::IAllocator* alloc{nullptr}; void* bus{nullptr}; };
+    struct CoreFrameCtx { Int64 frameStart{0}; Int64 frameDuration{0}; };
+    struct FrameContext { Int64 ts{0}; void* bus{nullptr}; };
 
     struct ISystem {
         virtual ~ISystem() = default;

@@ -1,4 +1,4 @@
-export module Element;
+export module Lang.Element;
 export import :Config;
 export import :Concepts;
 export import :Traits;

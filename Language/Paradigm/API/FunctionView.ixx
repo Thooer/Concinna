@@ -1,9 +1,9 @@
 module;
 
-export module Paradigm:FunctionView;
+export module Lang.Paradigm:FunctionView;
 
-import Element;
-import Semantics;
+import Lang.Element;
+import Lang.Semantics;
 
 
  

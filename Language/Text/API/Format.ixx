@@ -1,7 +1,7 @@
 module;
-export module Text:Format;
-import Element;
-import Semantics;
+export module Lang.Text:Format;
+import Lang.Element;
+import Lang.Semantics;
 import :StringView;
 import :FormatArg;
 import :FormatResult;

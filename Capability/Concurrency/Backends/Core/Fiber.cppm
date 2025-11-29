@@ -1,15 +1,16 @@
-module Concurrency;
-import Language;
-import Memory;
-import Platform;
-import Prm.Ownership:Memory;
+module Cap.Concurrency;
+import Lang;
+import Cap.Memory;
+import Prm.Threading;
+import Prm.Time;
+import Prm.Ownership;
 import :Fiber;
 import Tools.Tracy;
 
 extern "C" void Nova_FiberEnter() noexcept;
 extern "C" void Nova_FiberExit() noexcept;
 
-namespace Concurrency {
+namespace Cap {
     FiberStackPool::FiberStackPool(USize capacity) noexcept {
         auto r = Prm::VirtualMemory::Reserve(capacity);
         if (r.IsOk()) { m_base = r.Value(); m_capacity = capacity; }
@@ -54,12 +55,12 @@ namespace Concurrency {
         n->ptr = s.base;
         m_free.Push(n);
     }
-    void Fiber::Setup(FiberStackPool& pool, FiberFunc fn, void* a, Platform::FiberContext& returnCtx) noexcept {
+    void Fiber::Setup(FiberStackPool& pool, FiberFunc fn, void* a, void* returnCtx) noexcept {
         stack = pool.Alloc();
         poolRef = &pool;
         entry = fn;
         arg = a;
-        retCtx = &returnCtx;
+        retCtx = returnCtx;
         state = FiberState::Ready;
         if (!stack.base) { state = FiberState::Dead; return; }
         char* base = static_cast<char*>(stack.base);
@@ -75,21 +76,24 @@ namespace Concurrency {
         p[1] = reinterpret_cast<void*>(entry);
         p[2] = arg;
         p[3] = this;
-        ctx.rsp = reinterpret_cast<void*>(sp);
-        ctx.rip = reinterpret_cast<void*>(&Nova_FiberEnter);
-        ctx.owner = this;
-        ctx.entry = fn;
-        ctx.arg = a;
-        ctx.ret = &returnCtx;
-        ctx.heavy = false;
+        auto* c = static_cast<Prm::FiberContext*>(Prm::Heap::AllocRaw(Prm::Heap::GetProcessDefault(), sizeof(Prm::FiberContext)).ValueOr(nullptr));
+        if (!c) { state = FiberState::Dead; return; }
+        c->rsp = reinterpret_cast<void*>(sp);
+        c->rip = reinterpret_cast<void*>(&Nova_FiberEnter);
+        c->owner = this;
+        c->entry = fn;
+        c->arg = a;
+        c->ret = static_cast<Prm::FiberContext*>(returnCtx);
+        c->heavy = false;
+        ctx = c;
     }
 
-    void Fiber::StartSwitch(Platform::FiberContext& returnCtx) noexcept {
-        retCtx = &returnCtx;
+    void Fiber::StartSwitch(void* returnCtx) noexcept {
+        retCtx = returnCtx;
         state = FiberState::Running;
         frameMarker = frame.Offset();
 Tools::Tracy::Message("FiberEnter");
-Platform::SwapContexts(returnCtx, ctx);
+        Prm::SwapContexts(*static_cast<Prm::FiberContext*>(retCtx), *static_cast<Prm::FiberContext*>(ctx));
 Tools::Tracy::Message("FiberLeave");
 frame.ResetTo(frameMarker);
     }
@@ -100,22 +104,27 @@ frame.ResetTo(frameMarker);
         entry = nullptr;
         arg = nullptr;
         state = FiberState::Free;
-        ctx.fiberHandle = nullptr;
-        ctx.owner = nullptr;
-        ctx.entry = nullptr;
-        ctx.arg = nullptr;
-        ctx.ret = nullptr;
+        if (ctx) {
+            auto* c = static_cast<Prm::FiberContext*>(ctx);
+            c->fiberHandle = nullptr;
+            c->owner = nullptr;
+            c->entry = nullptr;
+            c->arg = nullptr;
+            c->ret = nullptr;
+            (void)Prm::Heap::FreeRaw(Prm::Heap::GetProcessDefault(), c);
+            ctx = nullptr;
+        }
     }
 }
 
 extern "C" void Nova_FiberExitNotify(void* fiberPtr) noexcept {
-    using namespace Concurrency;
+    using namespace Cap;
     auto* self = static_cast<Fiber*>(fiberPtr);
-    if (!self) { Platform::ThreadYield(); for(;;){} }
+    if (!self) { Prm::ThreadYield(); for(;;){} }
     Tools::Tracy::Message("FiberExitNotify");
-    self->state = Concurrency::FiberState::Dead;
-    if (self->poolRef && self->stack.base) { self->poolRef->Free(self->stack); self->stack = Concurrency::FiberStack{}; }
-    if (self->retCtx) { Platform::JumpContext(*self->retCtx); }
-    Platform::ThreadYield();
+    self->state = Cap::FiberState::Dead;
+    if (self->poolRef && self->stack.base) { self->poolRef->Free(self->stack); self->stack = Cap::FiberStack{}; }
+    if (self->retCtx) { Prm::JumpContext(*static_cast<Prm::FiberContext*>(self->retCtx)); }
+    Prm::ThreadYield();
     for(;;){}
 }

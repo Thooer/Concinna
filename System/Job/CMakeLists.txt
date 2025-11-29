@@ -1,3 +1,3 @@
-API(System.Job ${CMAKE_CURRENT_SOURCE_DIR}/API LINK Language;Memory;Concurrency)
-Impl(System.Job.Core ${CMAKE_CURRENT_SOURCE_DIR}/Impl LINK Language;Memory;Platform;System;Threading;Tools.Tracy)
-Build(SystemJob TYPE STATIC BACKEND System.Job.Core LINK Concurrency)
+API(Sys ${CMAKE_CURRENT_SOURCE_DIR}/API LINK Lang;Memory;Concurrency;Threading;Sync;Ownership;ConcurrentContainers;Time;SystemMemory)
+Impl(Sys.Core ${CMAKE_CURRENT_SOURCE_DIR}/Impl LINK Lang;Memory;Platform;System;Threading;Sync;Ownership;ConcurrentContainers;Tools.Tracy;Concurrency;Time;SystemMemory)
+Build(Sys TYPE STATIC BACKEND Sys.Core LINK Lang;Memory;Threading;Sync;Ownership;ConcurrentContainers;Concurrency;Time;SystemMemory)

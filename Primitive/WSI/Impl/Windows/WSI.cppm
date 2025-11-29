@@ -9,7 +9,10 @@ module;
 module Prm.WSI;
 
 import Prm.Window;
-import :WSI;
+import Lang.Element;
+import Lang.Flow;
+import Lang.Paradigm;
+import Lang.Text;
 
 namespace Prm {
 #ifdef HAS_VULKAN

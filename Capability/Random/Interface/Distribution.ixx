@@ -1,6 +1,6 @@
 export module Cap.Random:Distribution;
 
-import Language;
+import Lang;
 import :Core;
 import <cmath>;
 

@@ -1,5 +1,5 @@
-export module Meta:TypeList;
-import Element;
+export module Lang.Meta:TypeList;
+import Lang.Element;
 import <type_traits>;
 
 export template<typename... Ts>

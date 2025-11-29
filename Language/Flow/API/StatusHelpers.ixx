@@ -1,5 +1,5 @@
-export module Flow:StatusHelpers;
-import Element;
+export module Lang.Flow:StatusHelpers;
+import Lang.Element;
 import :StatusDomain;
 import :StatusCode;
 import :Status;
@@ -15,4 +15,3 @@ export [[nodiscard]] inline constexpr Status Err(StatusDomain domain, StatusCode
         msg
     };
 }
-

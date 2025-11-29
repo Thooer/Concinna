@@ -1,7 +1,7 @@
 module;
 export module Engine.Gameplay:World;
 
-import Language;
+import Lang;
 import Engine.Scene;
 import :Interfaces;
 

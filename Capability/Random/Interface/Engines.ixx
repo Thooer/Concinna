@@ -1,6 +1,6 @@
 export module Cap.Random:Engines;
 
-import Language;
+import Lang;
 import :Core;
 
 export namespace Cap::Random {

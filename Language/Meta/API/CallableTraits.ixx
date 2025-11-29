@@ -1,5 +1,5 @@
-export module Meta:CallableTraits;
-import Element;
+export module Lang.Meta:CallableTraits;
+import Lang.Element;
 import <tuple>;
 import <type_traits>;
 

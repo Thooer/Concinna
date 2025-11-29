@@ -1,7 +1,7 @@
 // Windows 后端：实现 FileSystem 的 Stdout/Stderr 与 Write
 import Prm.IO;
-import Flow;
-import Element;
+import Lang.Flow;
+import Lang.Element;
 
 namespace Prm {
     

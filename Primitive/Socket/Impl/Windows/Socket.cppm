@@ -2,10 +2,10 @@
 
 import Prm.Socket;
 
-import Flow;
-import Element;
-import Text;
-import Paradigm;
+import Lang.Flow;
+import Lang.Element;
+import Lang.Text;
+import Lang.Paradigm;
 
 namespace Prm {
     extern "C" __declspec(dllimport) int WSAStartup(unsigned short, void*);

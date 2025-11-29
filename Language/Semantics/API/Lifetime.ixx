@@ -1,7 +1,7 @@
 module;
 
-export module Semantics:Lifetime;
-import Element;
+export module Lang.Semantics:Lifetime;
+import Lang.Element;
 import <cstring>;
 import <new>;
 

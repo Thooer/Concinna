@@ -1,6 +1,6 @@
 export module Cap.Algorithms:Radix;
 
-import Language;
+import Lang;
 
 export namespace Cap {
     inline void RadixSort(Span<UInt32> keys) noexcept {

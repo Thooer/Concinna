@@ -1,6 +1,6 @@
 export module Cap.Memory:OwnedMemoryBlock;
 
-import Language;
+import Lang;
 import :Definitions;
 import :Allocator;
 

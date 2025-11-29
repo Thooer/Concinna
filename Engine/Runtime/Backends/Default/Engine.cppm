@@ -1,16 +1,12 @@
 module;
 module Engine.Runtime;
 
-import Language;
+import Lang;
 import :TaskHook;
-import Foundation.Time;
-import Foundation.Profiling;
-import Foundation.Memory;
-import System.Memory;
-import System.Job;
+import Prm.Time;
 
-using Language::USize;
-using Language::Int32;
+using ::USize;
+using ::Int32;
 
 namespace Engine {
     static USize findInsertIndex(const Int32* orders, USize count, Int32 order) noexcept {
@@ -20,18 +16,12 @@ namespace Engine {
 
     bool EngineRuntime::Initialize(const CoreConfig& cfg) noexcept {
         m_cfg = cfg;
-        Sys::InitThreadMemory();
-        (void)Sys::JobStart(0);
-        auto a = ::Foundation::Memory::CreateDefaultAllocatorScoped();
-        if (!a.IsOk()) return false;
-        m_allocScoped = Language::Move(a.OkValue());
-        m_alloc = m_allocScoped.Get();
         m_systems = nullptr;
         m_orders  = nullptr;
         m_count = 0;
         m_capacity = 0;
-        m_prof.BeginFrame();
-        m_ctx.frameStart = Foundation::Time::SteadyClock::Now();
+        m_ctx.frameStart = Prm::Now();
+        SetTaskSystemHook(CreateDefaultTaskHook());
         return true;
     }
 
@@ -66,8 +56,7 @@ namespace Engine {
     }
 
     void EngineRuntime::BeginFrame() noexcept {
-        m_prof.BeginFrame();
-        m_ctx.frameStart = Foundation::Time::SteadyClock::Now();
+        m_ctx.frameStart = Prm::Now();
     }
 
     void EngineRuntime::Tick(float dt) noexcept {
@@ -79,7 +68,7 @@ namespace Engine {
 
     void EngineRuntime::EndFrame() noexcept {
         if (auto* h = GetTaskSystemHook()) { h->Fence(); }
-        m_ctx.frameDuration = m_prof.EndFrame();
+        m_ctx.frameDuration = Prm::Delta(m_ctx.frameStart, Prm::Now());
     }
 
     void EngineRuntime::Shutdown() noexcept {
@@ -90,9 +79,7 @@ namespace Engine {
         if (m_systems) { ::operator delete[](m_systems); m_systems = nullptr; }
         if (m_orders)  { ::operator delete[](m_orders);  m_orders  = nullptr; }
         m_capacity = 0; m_count = 0;
-        m_alloc = nullptr;
-        Sys::JobStop();
-        Sys::ShutdownThreadMemory();
+        
     }
 
     USize EngineRuntime::SystemCount() const noexcept { return m_count; }

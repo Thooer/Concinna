@@ -1,7 +1,7 @@
 module Concurrency;
 extern "C" __declspec(dllimport) int GetQueuedCompletionStatus(void* h, unsigned long* bytes, unsigned long* key, void** ov, unsigned long ms);
 extern "C" __declspec(dllimport) void* CreateIoCompletionPort(void* fileHandle, void* existingPort, unsigned long key, unsigned long concurrency);
-import Language;
+import Lang;
 import Memory;
 import Platform;
 import :Driver;

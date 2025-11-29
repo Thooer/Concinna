@@ -1,5 +1,5 @@
 module Cap.Memory;
-import Language;
+import Lang;
 import Prm.Ownership;
 import :Definitions;
 import :IMemoryResource;

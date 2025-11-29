@@ -1,6 +1,6 @@
 export module Engine.Runtime.ChainSmoke;
 
-import Language;
+import Lang;
 import Engine.Runtime;
 
 namespace Nova::Samples::EngineChain {

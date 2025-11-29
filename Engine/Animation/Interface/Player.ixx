@@ -1,7 +1,7 @@
 module;
 export module Engine.Animation:Player;
 
-import Language;
+import Lang;
 import :Types;
 
 export namespace Engine::Animation {

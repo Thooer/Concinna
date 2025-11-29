@@ -1,7 +1,7 @@
 module;
 export module Engine.Resource.MainlineBDataMemory;
 
-import Language;
+import Lang;
 import Foundation.Time;
 import Foundation.Containers;
 import Foundation.Memory;

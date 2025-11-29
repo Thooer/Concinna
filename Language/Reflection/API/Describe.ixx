@@ -1,5 +1,5 @@
-export module Reflection:Describe;
-import Element;
+export module Lang.Reflection:Describe;
+import Lang.Element;
 import :TypeID;
 import :MemberInfo;
 import :Reflectable;

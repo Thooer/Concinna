@@ -1,4 +1,4 @@
-export module Element:Traits;
+export module Lang.Element:Traits;
 import <type_traits>;
 import <utility>;
 

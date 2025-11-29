@@ -1,6 +1,6 @@
 export module Cap.Memory:FrameAllocator;
 
-import Language;
+import Lang;
 import :Definitions;
 import :IMemoryResource;
 

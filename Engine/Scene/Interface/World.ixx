@@ -1,7 +1,7 @@
 module;
 export module Engine.Scene:World;
 
-import Language;
+import Lang;
 import Foundation.Memory;
 import :Types;
 

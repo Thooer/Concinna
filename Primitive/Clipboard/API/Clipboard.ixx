@@ -1,7 +1,7 @@
 module;
 export module Prm.Clipboard;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 
 export namespace Prm {
     export class Clipboard {

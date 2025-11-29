@@ -1,6 +1,6 @@
 export module Prm.Audio:Ops;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 import :Types;
 
 export namespace Prm {

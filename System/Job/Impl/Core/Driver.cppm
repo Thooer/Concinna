@@ -1,20 +1,18 @@
-module System.Job;
+module Sys;
 extern "C" __declspec(dllimport) int GetQueuedCompletionStatus(void* h, unsigned long* bytes, unsigned long* key, void** ov, unsigned long ms);
 extern "C" __declspec(dllimport) void* CreateIoCompletionPort(void* fileHandle, void* existingPort, unsigned long key, unsigned long concurrency);
-import Language;
-import Memory;
+extern "C" __declspec(dllimport) unsigned long long GetTickCount64();
+import Lang;
 import Prm.Time;
-import Prm.Threading:ThreadSync;
-import Prm.Threading:Fiber;
-import Prm.Ownership:Memory;
-import System.Job:Driver;
-import Cap.Concurrency:Fiber;
-import System.Job:Scheduler;
+import Prm.Ownership;
+import :Driver;
+import :Scheduler;
+import Cap.Concurrency;
 
 namespace Sys {
-    struct TimerItem { Prm::TimePoint start; UInt64 waitNs; Cap::Fiber* fb; void(*cb)(void*) noexcept; void* ctx; };
+    struct TimerItem { UInt64 startMs; UInt64 waitMs; Cap::Fiber* fb; void(*cb)(void*) noexcept; void* ctx; };
     static struct { TimerItem* items{nullptr}; USize cap{0}; USize count{0}; } gTimerStore;
-    struct EventItem { Prm::EventHandle h; Cap::Fiber* fb; };
+    struct EventItem { void* h; Cap::Fiber* fb; };
     static struct { EventItem* items{nullptr}; USize cap{0}; USize count{0}; } gEventStore;
     static struct { void* port{nullptr}; struct MapItem{ void* ov; Cap::Fiber* fb; }; MapItem* maps{nullptr}; USize cap{0}; USize count{0}; } gIocp;
 
@@ -23,11 +21,11 @@ namespace Sys {
     struct TimerDriver : ITimerDriver {
         UInt32 NextTimeoutMs() noexcept override {
             if (!gTimerStore.items || gTimerStore.count == 0) return 1u;
-            auto now = Prm::Now();
-            auto left = gTimerStore.items[0].waitNs;
-            auto elapsed = Prm::Delta(gTimerStore.items[0].start, now);
+            auto now = GetTickCount64();
+            auto left = gTimerStore.items[0].waitMs;
+            auto elapsed = now - gTimerStore.items[0].startMs;
             UInt64 rem = (elapsed >= left) ? 0ull : (left - elapsed);
-            return static_cast<UInt32>((rem + 999'999ull) / 1'000'000ull);
+            return static_cast<UInt32>(rem);
         }
         bool AddTimer(Cap::Fiber* fb, UInt32 delayMs) noexcept override { return gDriver.AddTimer(fb, delayMs); }
         bool AddTimeout(void(*cb)(void*) noexcept, void* ctx, UInt32 delayMs) noexcept override { return gDriver.AddTimeout(cb, ctx, delayMs); }
@@ -55,7 +53,7 @@ namespace Sys {
         [[nodiscard]] UInt32 PendingCount() noexcept override { return static_cast<UInt32>(gIocp.count); }
     };
     struct SignalDriver : ISignalDriver {
-        bool AddEvent(Prm::EventHandle h, Cap::Fiber* fb) noexcept override { return gDriver.AddEvent(h, fb); }
+        bool AddEvent(void* h, Cap::Fiber* fb) noexcept override { return gDriver.AddEvent(h, fb); }
     };
     static TimerDriver sTimer{};
     static IoDriver sIo{};
@@ -66,40 +64,38 @@ namespace Sys {
 
     bool Driver::Init() noexcept {
         if (gTimerStore.items) return true;
-        auto h = Prm::Heap::GetProcessDefault();
-        auto rn = Prm::Heap::AllocRaw(h, sizeof(TimerItem) * 8192);
-        if (!rn.IsOk()) return false;
-        gTimerStore.items = static_cast<TimerItem*>(rn.Value());
+        auto* ti = static_cast<TimerItem*>(::operator new(sizeof(TimerItem) * 8192));
+        if (!ti) return false;
+        gTimerStore.items = ti;
         gTimerStore.cap = 8192; gTimerStore.count = 0;
-        auto re = Prm::Heap::AllocRaw(h, sizeof(EventItem) * 4096);
-        if (!re.IsOk()) return false;
-        gEventStore.items = static_cast<EventItem*>(re.Value());
+        auto* ei = static_cast<EventItem*>(::operator new(sizeof(EventItem) * 4096));
+        if (!ei) return false;
+        gEventStore.items = ei;
         gEventStore.cap = 4096; gEventStore.count = 0;
-        auto rm = Prm::Heap::AllocRaw(h, sizeof(gIocp.maps[0]) * 8192);
-        if (!rm.IsOk()) return false;
-        gIocp.maps = static_cast<decltype(gIocp.maps)>(rm.Value());
+        auto* mp = static_cast<decltype(gIocp.maps)>(::operator new(sizeof(gIocp.maps[0]) * 8192));
+        if (!mp) return false;
+        gIocp.maps = mp;
         gIocp.cap = 8192; gIocp.count = 0;
         (void)AttachIocp();
         return true;
     }
 
     void Driver::Shutdown() noexcept {
-        auto h = Prm::Heap::GetProcessDefault();
-        if (gTimerStore.items) { (void)Prm::Heap::FreeRaw(h, gTimerStore.items); gTimerStore.items = nullptr; gTimerStore.cap = 0; gTimerStore.count = 0; }
-        if (gEventStore.items) { (void)Prm::Heap::FreeRaw(h, gEventStore.items); gEventStore.items = nullptr; gEventStore.cap = 0; gEventStore.count = 0; }
-        if (gIocp.maps) { (void)Prm::Heap::FreeRaw(h, gIocp.maps); gIocp.maps = nullptr; gIocp.cap = 0; gIocp.count = 0; }
+        if (gTimerStore.items) { ::operator delete(gTimerStore.items); gTimerStore.items = nullptr; gTimerStore.cap = 0; gTimerStore.count = 0; }
+        if (gEventStore.items) { ::operator delete(gEventStore.items); gEventStore.items = nullptr; gEventStore.cap = 0; gEventStore.count = 0; }
+        if (gIocp.maps) { ::operator delete(gIocp.maps); gIocp.maps = nullptr; gIocp.cap = 0; gIocp.count = 0; }
     }
 
     bool Driver::AddTimer(Cap::Fiber* fb, UInt32 delayMs) noexcept {
         if (!fb) return false;
         if (!gTimerStore.items || gTimerStore.count >= static_cast<USize>(gTimerStore.cap)) return false;
-        TimerItem it{}; it.start = Prm::Now(); it.waitNs = static_cast<UInt64>(delayMs) * 1'000'000ull; it.fb = fb; it.cb = nullptr; it.ctx = nullptr;
+        TimerItem it{}; it.startMs = GetTickCount64(); it.waitMs = static_cast<UInt64>(delayMs); it.fb = fb; it.cb = nullptr; it.ctx = nullptr;
         USize i = gTimerStore.count++;
         gTimerStore.items[i] = it;
         while (i > 0) {
             auto p = (i - 1) >> 1;
-            auto left = gTimerStore.items[i].waitNs - Prm::Delta(gTimerStore.items[i].start, Prm::Now());
-            auto pr   = gTimerStore.items[p].waitNs - Prm::Delta(gTimerStore.items[p].start, Prm::Now());
+            auto left = gTimerStore.items[i].waitMs - (GetTickCount64() - gTimerStore.items[i].startMs);
+            auto pr   = gTimerStore.items[p].waitMs - (GetTickCount64() - gTimerStore.items[p].startMs);
             if (left < pr) { auto tmp = gTimerStore.items[p]; gTimerStore.items[p] = gTimerStore.items[i]; gTimerStore.items[i] = tmp; i = p; } else break;
         }
         return true;
@@ -108,20 +104,20 @@ namespace Sys {
     bool Driver::AddTimeout(void(*cb)(void*) noexcept, void* ctx, UInt32 delayMs) noexcept {
         if (!cb) return false;
         if (!gTimerStore.items || gTimerStore.count >= static_cast<USize>(gTimerStore.cap)) return false;
-        TimerItem it{}; it.start = Prm::Now(); it.waitNs = static_cast<UInt64>(delayMs) * 1'000'000ull; it.fb = nullptr; it.cb = cb; it.ctx = ctx;
+        TimerItem it{}; it.startMs = GetTickCount64(); it.waitMs = static_cast<UInt64>(delayMs); it.fb = nullptr; it.cb = cb; it.ctx = ctx;
         USize i = gTimerStore.count++;
         gTimerStore.items[i] = it;
         while (i > 0) {
             auto p = (i - 1) >> 1;
-            auto left = gTimerStore.items[i].waitNs - Prm::Delta(gTimerStore.items[i].start, Prm::Now());
-            auto pr   = gTimerStore.items[p].waitNs - Prm::Delta(gTimerStore.items[p].start, Prm::Now());
+            auto left = gTimerStore.items[i].waitMs - (GetTickCount64() - gTimerStore.items[i].startMs);
+            auto pr   = gTimerStore.items[p].waitMs - (GetTickCount64() - gTimerStore.items[p].startMs);
             if (left < pr) { auto tmp = gTimerStore.items[p]; gTimerStore.items[p] = gTimerStore.items[i]; gTimerStore.items[i] = tmp; i = p; } else break;
         }
         return true;
     }
 
-    bool Driver::AddEvent(Prm::EventHandle h, Cap::Fiber* fb) noexcept {
-        if (!h.Get() || !fb) return false;
+    bool Driver::AddEvent(void* h, Cap::Fiber* fb) noexcept {
+        if (!h || !fb) return false;
         if (!gEventStore.items || gEventStore.count >= static_cast<USize>(gEventStore.cap)) return false;
         EventItem it{}; it.h = h; it.fb = fb;
         gEventStore.items[gEventStore.count++] = it;
@@ -136,10 +132,10 @@ namespace Sys {
 
     void SleepMs(UInt32 ms) noexcept {
         auto* cf = Scheduler::CurrentFiber();
-        if (!cf) { Prm::ThreadSleepMs(ms); return; }
+        if (!cf) { return; }
         (void)gDriverApi->AddTimer(cf, ms);
         cf->state = Cap::FiberState::Waiting;
-        Prm::SwapContexts(cf->ctx, *cf->retCtx);
+        cf->StartSwitch(cf->retCtx);
         cf->state = Cap::FiberState::Running;
     }
 

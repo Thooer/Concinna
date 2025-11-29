@@ -1,5 +1,5 @@
 export module Prm.Sync:MemoryOrder;
-import Element;
+import Lang.Element;
 import <atomic>;
 
 export namespace Prm {

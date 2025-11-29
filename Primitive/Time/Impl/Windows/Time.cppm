@@ -2,7 +2,7 @@ module;
 module Prm.Time;
 
 import Prm.Time;
-import Element;
+import Lang.Element;
 
 namespace Prm {
     

@@ -1,8 +1,8 @@
 module Prm.Clipboard;
 
 import Prm.Clipboard;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 
 using namespace Prm;
 

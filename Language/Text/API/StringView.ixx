@@ -1,7 +1,7 @@
 module;
-export module Text:StringView;
-import Element;
-import Semantics;
+export module Lang.Text:StringView;
+import Lang.Element;
+import Lang.Semantics;
 
 
 export struct StringView {

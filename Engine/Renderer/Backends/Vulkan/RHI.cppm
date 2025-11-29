@@ -3,10 +3,11 @@ module;
 
 module Engine.Renderer;
 
-import Language;
+import Lang;
 import :RHI.Types;
 import :RHI.API;
-import Platform;
+import Prm.WSI;
+import Prm.Window;
 
 namespace Engine::Renderer::RHI {
     struct VkDeviceState {
@@ -76,7 +77,7 @@ namespace Engine::Renderer::RHI {
     Language::StatusResult<Swapchain> CreateSwapchain(const Device& dev, const SurfaceInfo& si) noexcept {
         if (!dev.p || !si.hwnd) return Language::StatusResult<Swapchain>::Err(Language::Err(Language::StatusDomain::Platform(), Language::StatusCode::InvalidArgument));
         VkDeviceState* ds = reinterpret_cast<VkDeviceState*>(dev.p);
-        auto srSurf = Platform::WSI::CreateVulkanSurface(reinterpret_cast<void*>(ds->instance), Platform::WindowHandle{ si.hwnd });
+        auto srSurf = Prm::CreateVulkanSurface(reinterpret_cast<void*>(ds->instance), Prm::WindowHandle{ si.hwnd });
         if (!srSurf.IsOk()) return Language::StatusResult<Swapchain>::Err(srSurf.ErrStatus());
         VkSurfaceKHR surface = reinterpret_cast<VkSurfaceKHR>(srSurf.OkValue());
 

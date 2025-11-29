@@ -1,9 +1,9 @@
 #include <new>
 
 import Prm.Threading;
-import Element;
-import Flow;
-import Paradigm;
+import Lang.Element;
+import Lang.Flow;
+import Lang.Paradigm;
 
 extern "C" __declspec(dllimport) void* GetModuleHandleA(const char* lpModuleName);
 extern "C" __declspec(dllimport) void* GetProcAddress(void* hModule, const char* lpProcName);

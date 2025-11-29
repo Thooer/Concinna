@@ -1,5 +1,5 @@
-export module Meta:TypeSet;
-import Element;
+export module Lang.Meta:TypeSet;
+import Lang.Element;
 import :TypeList;
 
 export template<typename... Components>

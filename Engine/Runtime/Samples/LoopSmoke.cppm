@@ -1,6 +1,6 @@
 export module Engine.Runtime.LoopSmoke;
 
-import Language;
+import Lang;
 import Foundation.Time;
 import Foundation.Containers;
 import Engine.Runtime;

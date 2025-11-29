@@ -1,7 +1,7 @@
 module;
-export module Text:StaticString;
-import Element;
-import Semantics;
+export module Lang.Text:StaticString;
+import Lang.Element;
+import Lang.Semantics;
 import :StringView;
 import :Format;
 

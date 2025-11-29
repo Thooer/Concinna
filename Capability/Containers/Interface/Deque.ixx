@@ -1,5 +1,5 @@
 export module Containers:Deque;
-import Language;
+import Lang;
 import Cap.Memory;
 import <type_traits>;
 

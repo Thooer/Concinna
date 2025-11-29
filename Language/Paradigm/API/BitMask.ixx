@@ -1,8 +1,8 @@
 
 module;
-export module Paradigm:BitMask;
+export module Lang.Paradigm:BitMask;
 
-import Element;
+import Lang.Element;
 
 import <type_traits>;
 import <utility>;

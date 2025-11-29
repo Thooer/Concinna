@@ -1,28 +1,28 @@
-module Concurrency;
-import Language;
-import Platform;
+module Cap.Concurrency;
+import Lang;
+import Prm.Threading;
 import :Parker;
 
-namespace Concurrency {
+namespace Cap {
     bool Parker::Init() noexcept {
-        auto r = Platform::EventCreate(false, false);
+        auto r = Prm::EventCreate(false, false);
         if (!r.IsOk()) return false;
-        m_ev = r.Value();
+        m_ev = r.Value().Get();
         return true;
     }
 
     void Parker::Destroy() noexcept {
-        if (m_ev.Get()) {
-            (void)Platform::EventDestroy(m_ev);
-            m_ev = Platform::EventHandle{};
+        if (m_ev) {
+            (void)Prm::EventDestroy(Prm::EventHandle{ m_ev });
+            m_ev = nullptr;
         }
     }
 
     void Parker::Park(UInt32 timeoutMs) noexcept {
-        (void)Platform::EventWait(m_ev, timeoutMs);
+        (void)Prm::EventWait(Prm::EventHandle{ m_ev }, timeoutMs);
     }
 
     void Parker::Unpark() noexcept {
-        (void)Platform::EventSignal(m_ev);
+        (void)Prm::EventSignal(Prm::EventHandle{ m_ev });
     }
 }

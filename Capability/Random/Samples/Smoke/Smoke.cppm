@@ -1,6 +1,6 @@
 export module Random.Smoke;
 
-import Language;
+import Lang;
 import Cap.Random;
 
 extern "C" int main() {

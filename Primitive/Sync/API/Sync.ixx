@@ -1,7 +1,7 @@
 export module Prm.Sync;
-import Element;
-import Semantics;
-import Flow;
+import Lang.Element;
+import Lang.Semantics;
+import Lang.Flow;
 
 export import :Atomic;
 export import :MemoryOrder;

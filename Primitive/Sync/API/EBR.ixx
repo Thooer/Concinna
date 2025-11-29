@@ -1,5 +1,5 @@
 export module Prm.Sync:EBR;
-import Element;
+import Lang.Element;
 import :Atomic;
 import :MemoryOrder;
 import :LockFree;

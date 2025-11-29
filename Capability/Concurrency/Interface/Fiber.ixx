@@ -1,9 +1,8 @@
 export module Cap.Concurrency:Fiber;
 
-import Language;
-import Memory;
-import Prm.Threading:Types;
-import Prm.Sync:LockFree;
+import Lang;
+import Cap.Memory;
+import Prm.Sync;
 
 extern "C" void Nova_FiberEnter() noexcept;
 extern "C" void Nova_FiberExit() noexcept;
@@ -35,16 +34,16 @@ export namespace Cap {
         FiberStack stack{};
         FiberFunc entry{nullptr};
         void* arg{nullptr};
-        Prm::FiberContext ctx{};
+        void* ctx{nullptr};
         FiberStackPool* poolRef{nullptr};
-        Prm::FiberContext* retCtx{nullptr};
+        void* retCtx{nullptr};
         void* owner{nullptr};
         UInt8 prio{0};
         Cap::FrameAllocatorResource frame{ 1u << 20u };
         USize frameMarker{0};
 
-        void Setup(FiberStackPool& pool, FiberFunc fn, void* a, Prm::FiberContext& returnCtx) noexcept;
-        void StartSwitch(Prm::FiberContext& returnCtx) noexcept;
+        void Setup(FiberStackPool& pool, FiberFunc fn, void* a, void* returnCtx) noexcept;
+        void StartSwitch(void* returnCtx) noexcept;
         void Reset(FiberStackPool& pool) noexcept;
     };
 

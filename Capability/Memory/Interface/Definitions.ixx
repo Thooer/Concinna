@@ -1,6 +1,6 @@
 export module Cap.Memory:Definitions;
 
-import Language;
+import Lang;
 import Prm.Ownership;
 import Prm.Sync;
 

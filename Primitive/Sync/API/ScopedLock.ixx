@@ -1,5 +1,5 @@
 export module Prm.Sync:ScopedLock;
-import Element;
+import Lang.Element;
 
 export namespace Prm {
     template<typename LockType>

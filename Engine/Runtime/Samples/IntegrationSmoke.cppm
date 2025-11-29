@@ -1,6 +1,6 @@
 export module Engine.Runtime.IntegrationSmoke;
 
-import Language;
+import Lang;
 import Foundation.Memory;
 import Foundation.Time;
 import Engine.Runtime;

@@ -2,10 +2,10 @@
 module;
 export module Prm.DynamicLibrary;
 
-import Element;
-import Flow;
-import Text;
-import Paradigm;
+import Lang.Element;
+import Lang.Flow;
+import Lang.Text;
+import Lang.Paradigm;
 extern "C" __declspec(dllimport) void* LoadLibraryA(const char* path);
 extern "C" __declspec(dllimport) int   FreeLibrary(void* h);
 extern "C" __declspec(dllimport) void* GetProcAddress(void* h, const char* name);

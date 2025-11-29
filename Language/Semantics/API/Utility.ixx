@@ -4,8 +4,8 @@
  * @details 提供 Forward/Move/Exchange/BitCast/枚举位操作与 InPlace 标签等。
  */
 module;
-export module Semantics:Utility;
-import Element;
+export module Lang.Semantics:Utility;
+import Lang.Element;
 import :Debug;
 import <immintrin.h>;
 import <type_traits>;

@@ -1,5 +1,5 @@
 export module Foundation.IRSystem:Execution.Validation.ValidateReport;
-import Language;
+import Lang;
 import Foundation.IRSystem:IR.Core.Diagnostics;
 import Foundation.IRSystem:IR.IR.MorphismIR;
 import Foundation.IRSystem:IR.IR.MorphismIRMetadata;

@@ -1,18 +1,18 @@
 module;
 
-export module Test:Assertions;
+export module Sys.Job.Test:Assertions;
 
 import <cmath>;
 import <source_location>;
 import <type_traits>;
 
-import Language;
+import Lang;
 
 import :Core;
 import :Context;
 import :Registration;
 
-export namespace Test {
+export namespace Sys {
 
     namespace Detail {
         inline void ReportFailure(

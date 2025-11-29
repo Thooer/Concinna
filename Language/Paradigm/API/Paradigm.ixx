@@ -1,5 +1,5 @@
 module;
-export module Paradigm;
+export module Lang.Paradigm;
 
 export import :BitMask;
 export import :FunctionView;

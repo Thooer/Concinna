@@ -1,7 +1,7 @@
 module;
 export module Engine.Renderer.RHIVulkanComputeSmoke;
 
-import Language;
+import Lang;
 import Engine.Renderer;
 
 namespace Nova::Samples::RendererRHICompute {

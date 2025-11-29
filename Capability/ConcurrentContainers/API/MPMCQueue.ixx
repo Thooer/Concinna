@@ -1,6 +1,6 @@
 export module Cap.ConcurrentContainers:MPMCQueue;
 
-import Language;
+import Lang;
 import Cap.Memory;
 import Prm.Ownership;
 import Prm.Sync;

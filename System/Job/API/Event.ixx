@@ -1,15 +1,13 @@
-export module System.Job:Event;
+export module Sys:Event;
 
-import Language;
-import Memory;
-import Cap.Concurrency:Fiber;
-import System.Job:Scheduler;
-import Prm.Sync:LockFree;
-
+import Lang;
+import Cap.Concurrency;
+import :Scheduler;
+import Prm.Sync;
 export namespace Sys {
     struct FiberEvent {
-        Atomic<bool> m_signaled{false};
-        struct WaitNode { WaitNode* next; Cap::Fiber* fiber; Atomic<bool> canceled{false}; };
+        Prm::Atomic<bool> m_signaled{false};
+        struct WaitNode { WaitNode* next; Cap::Fiber* fiber; Prm::Atomic<bool> canceled{false}; };
         Prm::IntrusiveLockFreeStack<WaitNode> m_waiters{};
         void Signal() noexcept;
         void Broadcast() noexcept;

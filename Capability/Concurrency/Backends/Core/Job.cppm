@@ -1,5 +1,5 @@
 module Concurrency;
-import Language;
+import Lang;
 import :Job;
 
 namespace Concurrency {

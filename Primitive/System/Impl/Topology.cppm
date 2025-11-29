@@ -1,5 +1,5 @@
 import Prm.System;
-import Element;
+import Lang.Element;
 
 namespace Prm {
     Topology Detect() noexcept {

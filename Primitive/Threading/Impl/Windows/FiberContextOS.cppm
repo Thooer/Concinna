@@ -1,7 +1,7 @@
 module Prm.Threading;
 
 import Prm.Threading;
-import Element;
+import Lang.Element;
 
 extern "C" void Nova_FiberExitNotify(void* fiberPtr) noexcept;
 

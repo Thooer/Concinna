@@ -1,12 +1,12 @@
 module;
 
-export module Test:Core;
+export module Sys.Job.Test:Core;
 
-import Language;
+import Lang;
 
-export namespace Test {
+export namespace Sys {
 
-    inline constexpr StatusDomain TestDomain{"Test", 0, -1};
+    inline constexpr StatusDomain TestDomain{"Sys.Test", 0, -1};
 
     enum class TestState : UInt8 {
         Pending,

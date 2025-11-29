@@ -1,7 +1,7 @@
 module;
 module Engine.Resource:Versioning;
 
-import Language;
+import Lang;
 import Foundation.IO;
 import :Handle;
 

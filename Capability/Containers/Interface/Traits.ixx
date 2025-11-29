@@ -1,6 +1,6 @@
 export module Containers:Traits;
 
-import Language;
+import Lang;
 import :String;
 import <type_traits>;
 

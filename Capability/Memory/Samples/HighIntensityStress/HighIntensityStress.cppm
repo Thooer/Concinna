@@ -1,4 +1,4 @@
-import Language;
+import Lang;
 import Memory;
 import Prm.Threading:ThreadSync;
 import <atomic>;

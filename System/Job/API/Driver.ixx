@@ -1,10 +1,8 @@
-export module System.Job:Driver;
+export module Sys:Driver;
 
-import Language;
-import Prm.Threading:Types;
-import Prm.Threading:ThreadSync;
-import Prm.Threading:Fiber;
-import Cap.Concurrency:Fiber;
+import Lang;
+export namespace Prm { struct EventHandle; }
+import Cap.Concurrency;
 
 export namespace Sys {
     export struct ITimerDriver {
@@ -22,7 +20,7 @@ export namespace Sys {
         virtual ~IIODriver() {}
     };
     export struct ISignalDriver {
-        virtual bool AddEvent(Prm::EventHandle h, Cap::Fiber* fb) noexcept = 0;
+        virtual bool AddEvent(void* h, Cap::Fiber* fb) noexcept = 0;
         virtual ~ISignalDriver() {}
     };
     export struct IDriver {
@@ -32,7 +30,7 @@ export namespace Sys {
         [[nodiscard]] virtual UInt32 NextTimeoutMs() noexcept = 0;
         virtual bool AddTimer(Cap::Fiber* fb, UInt32 delayMs) noexcept = 0;
         virtual bool AddTimeout(void(*cb)(void*) noexcept, void* ctx, UInt32 delayMs) noexcept = 0;
-        virtual bool AddEvent(Prm::EventHandle h, Cap::Fiber* fb) noexcept = 0;
+        virtual bool AddEvent(void* h, Cap::Fiber* fb) noexcept = 0;
         virtual void WakeUp() noexcept = 0;
         virtual bool AttachIocp() noexcept = 0;
         virtual bool RegisterIocpHandle(void* h) noexcept = 0;
@@ -47,7 +45,7 @@ export namespace Sys {
         [[nodiscard]] UInt32 NextTimeoutMs() noexcept;
         bool AddTimer(Cap::Fiber* fb, UInt32 delayMs) noexcept;
         bool AddTimeout(void(*cb)(void*) noexcept, void* ctx, UInt32 delayMs) noexcept;
-        bool AddEvent(Prm::EventHandle h, Cap::Fiber* fb) noexcept;
+        bool AddEvent(void* h, Cap::Fiber* fb) noexcept;
         void WakeUp() noexcept;
         bool AttachIocp() noexcept;
         bool RegisterIocpHandle(void* h) noexcept;

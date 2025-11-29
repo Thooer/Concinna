@@ -1,6 +1,6 @@
 module;
 export module Cap.Math:Compute;
-import Language;
+import Lang;
 import SIMD;
 import :Storage;
 export namespace Cap {

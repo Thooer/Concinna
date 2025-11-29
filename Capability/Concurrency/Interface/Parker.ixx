@@ -1,11 +1,11 @@
 export module Cap.Concurrency:Parker;
 
-import Language;
-import Prm.Threading:Types;
+import Lang;
+// no import of Prm.Threading here to avoid cross-partition module issues
 
 export namespace Cap {
     struct Parker {
-        Prm::EventHandle m_ev{};
+        void* m_ev{};
         bool Init() noexcept;
         void Destroy() noexcept;
         void Park(UInt32 timeoutMs) noexcept;

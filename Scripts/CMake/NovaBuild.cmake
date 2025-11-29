@@ -234,12 +234,22 @@ function(Sample name sample_dir)
   if(NOT ${_opt})
     return()
   endif()
+  Collect(_mod_files ${sample_dir})
   file(GLOB_RECURSE _cpp_files CONFIGURE_DEPENDS "${sample_dir}/*.cpp")
-  if(_cpp_files)
-    add_executable(${_exe} ${_cpp_files})
-    if(ARGS_LINK)
-      target_link_libraries(${_exe} PRIVATE ${ARGS_LINK})
-    endif()
-    apply_common_options(${_exe})
+  add_executable(${_exe})
+  if(_mod_files)
+    target_sources(${_exe}
+      PRIVATE
+        FILE_SET CXX_MODULES TYPE CXX_MODULES
+          BASE_DIRS ${sample_dir}
+        FILES ${_mod_files}
+    )
   endif()
+  if(_cpp_files)
+    target_sources(${_exe} PRIVATE ${_cpp_files})
+  endif()
+  if(ARGS_LINK)
+    target_link_libraries(${_exe} PRIVATE ${ARGS_LINK})
+  endif()
+  apply_common_options(${_exe})
 endfunction()

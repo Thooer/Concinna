@@ -1,7 +1,7 @@
 export module Cap.Concurrency:Allocator;
 
-import Language;
-import Memory;
+import Lang;
+import Cap.Memory;
 
 export namespace Cap {
     [[nodiscard]] Cap::Allocator CurrentAllocator() noexcept;

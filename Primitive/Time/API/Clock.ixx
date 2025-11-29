@@ -1,6 +1,6 @@
 export module Prm.Time:Clock;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 import :Types;
 
 export namespace Prm {

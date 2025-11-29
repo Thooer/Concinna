@@ -1,5 +1,5 @@
-export module Meta:TypeTag;
-import Element;
+export module Lang.Meta:TypeTag;
+import Lang.Element;
 
 export template<typename T>
 struct TypeTag { using Type = T; };

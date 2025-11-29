@@ -1,6 +1,6 @@
 export module Cap.Memory:SmallObjectAllocator;
 
-import Language;
+import Lang;
 import :Definitions;
 import :IMemoryResource;
 import :PoolAllocator;

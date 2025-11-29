@@ -3,7 +3,7 @@ import Foundation.IRSystem:IR.Core.Types;
 import <type_traits>;
 import <cstddef>;
 import <string_view>;
-import Language;
+import Lang;
 
 export namespace Foundation::IRSystem {
     template<typename T> struct TypeIdentity { using Type = T; };

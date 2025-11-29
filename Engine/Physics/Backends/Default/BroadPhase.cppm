@@ -1,7 +1,7 @@
 module;
 export module Engine.Physics:BroadPhase;
 
-import Language;
+import Lang;
 import :Types;
 import :DBVT;
 

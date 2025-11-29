@@ -1,9 +1,9 @@
 export module Cap.Concurrency:Policy;
 
-import Language;
+import Lang;
 import Cap.Memory;
 import Prm.Sync;
-import Flow;
+import Lang.Flow;
 
 export namespace Cap::Policy {
     struct Ebr {
@@ -32,5 +32,5 @@ export namespace Cap::Policy {
     };
 
     struct Spin { static void Wait(Backoff& b) noexcept { b.Next(); } };
-    struct Yield { static void Wait(Backoff&) noexcept { ThreadYield(); } };
+    struct Yield { static void Wait(Backoff& b) noexcept { b.Yield(); } };
 }

@@ -1,8 +1,8 @@
 module;
 #include <type_traits>
 
-export module Meta:Conversion;
-import Element;
+export module Lang.Meta:Conversion;
+import Lang.Element;
 
 export template<Enum E>
 using UnderlyingTypeT = std::underlying_type_t<E>;

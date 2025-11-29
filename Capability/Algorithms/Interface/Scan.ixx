@@ -1,6 +1,6 @@
 export module Cap.Algorithms:Scan;
 
-import Language;
+import Lang;
 import :Policy;
 
 export namespace Cap {

@@ -1,6 +1,6 @@
 export module Cap.Memory:PoolAllocator;
 
-import Language;
+import Lang;
 import :Definitions;
 import :IMemoryResource;
 import :ThreadCache;

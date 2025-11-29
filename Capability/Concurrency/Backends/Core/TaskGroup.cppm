@@ -1,5 +1,5 @@
 module Concurrency;
-import Language;
+import Lang;
 import :TaskGroup;
 import :Counter;
 import :Scheduler;

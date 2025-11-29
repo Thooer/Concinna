@@ -1,6 +1,6 @@
 module;
 export module Cap.Math:Color;
-import Language;
+import Lang;
 import :Storage;
 import <cmath>;
 export namespace Cap {

@@ -1,7 +1,7 @@
 module;
 export module Engine.Resource:Manager;
 
-import Language;
+import Lang;
 import Foundation.Memory;
 import Foundation.Containers;
 import :Handle;

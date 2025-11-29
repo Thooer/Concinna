@@ -1,4 +1,4 @@
-export module Element:Types;
+export module Lang.Element:Types;
 import :Concepts;
 import <type_traits>;
 import <utility>;

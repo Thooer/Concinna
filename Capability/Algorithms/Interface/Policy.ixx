@@ -1,6 +1,6 @@
 export module Cap.Algorithms:Policy;
 
-import Language;
+import Lang;
 
 export namespace Cap {
     struct ExecutionPolicy {

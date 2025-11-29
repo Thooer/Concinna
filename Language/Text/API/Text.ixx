@@ -1,5 +1,5 @@
 module;
-export module Text;
+export module Lang.Text;
 
 export import :StringView;
 export import :StaticString;

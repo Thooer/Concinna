@@ -1,23 +1,26 @@
-module System.Job;
-import Language;
-import Memory;
+module Sys;
+import Lang;
+import Cap.Memory;
 import Prm.System;
-import System.Memory;
-import Prm.Threading;
+import Prm.Time;
+import Prm.Ownership;
+import Prm.Ownership;
 import Cap.Concurrency;
-import System.Job:Scheduler;
-import Cap.Concurrency:Parker;
-import System.Job:Driver;
 import Tools.Tracy;
-import Prm.Ownership:Memory;
+import :Scheduler;
+import :Driver;
+import Sys.Memory;
 
 namespace Sys {
+    template<typename T>
+    using Atomic = Prm::Atomic<T>;
+    using MemoryOrder = Prm::MemoryOrder;
     struct Worker {
         UInt32 id{0};
         Cap::ChaseLevDeque<Cap::Fiber*> qHigh{};
         Cap::ChaseLevDeque<Cap::Fiber*> qNorm{};
-        Prm::ThreadHandle th{};
-        Prm::FiberContext host{};
+        void* th{nullptr};
+        void* host{nullptr};
         Scheduler* sched{nullptr};
         Cap::Parker sleep{};
         Atomic<bool> idle{false};
@@ -41,14 +44,14 @@ namespace Sys {
 
 void WorkerStart(void* p) noexcept {
     auto* w = static_cast<Worker*>(p);
-    Sys::InitThreadMemory();
+    
     Tools::Tracy::SetThreadName("Worker");
     auto& sch = *w->sched;
         UInt32 idle = 0;
         UInt32 steals = 0;
         UInt32 localProcessed = 0;
         for (;;) {
-            if (!sch.m_running.Load(MemoryOrder::Acquire)) break;
+            if (!sch.m_running.Load(Prm::MemoryOrder::Acquire)) break;
             Cap::Fiber* fb = nullptr;
             if (w->qHigh.PopBottom(fb) || w->qNorm.PopBottom(fb)) {
                 Scheduler::SetCurrentFiber(fb);
@@ -65,34 +68,22 @@ void WorkerStart(void* p) noexcept {
             }
             Cap::Job job{};
             if ((localProcessed % 64 == 0) && sch.m_global.Dequeue(job).Value()) {
-                if (Prm::IsOSFiberBackend()) {
-                    auto t0 = Prm::Now();
-                    Tools::Tracy::Zone zJob{"Job"};
-                    job.invoke(job.arg);
-                    auto t1 = Prm::Now();
-                    w->m.runNs += Prm::Delta(t0, t1);
-                    w->m.runCount += 1;
-                    idle = 0;
-                    continue;
-                } else {
-                    auto rn = Prm::Heap::AllocRaw(Prm::Heap::GetProcessDefault(), sizeof(Cap::Fiber));
-                    if (!rn.IsOk()) { idle = 0; continue; }
-                    auto* nf = static_cast<Cap::Fiber*>(rn.Value());
-                    new (nf) Cap::Fiber{};
-                    nf->Setup(sch.m_pool, job.invoke, job.arg, w->host);
-                    nf->owner = w;
-                    nf->prio = job.qos;
-                    Scheduler::SetCurrentFiber(nf);
-                    auto t0 = Prm::Now();
-                    Tools::Tracy::Zone zFiberJob{"Fiber(Job)"};
-                    nf->StartSwitch(w->host);
-                    auto t1 = Prm::Now();
-                    w->m.runNs += Prm::Delta(t0, t1);
-                    w->m.runCount += 1;
-                    Scheduler::SetCurrentFiber(nullptr);
-                    idle = 0;
-                    continue;
-                }
+                auto* nf = static_cast<Cap::Fiber*>(::operator new(sizeof(Cap::Fiber)));
+                if (!nf) { idle = 0; continue; }
+                new (nf) Cap::Fiber{};
+                nf->Setup(sch.m_pool, job.invoke, job.arg, w->host);
+                nf->owner = w;
+                nf->prio = job.qos;
+                Scheduler::SetCurrentFiber(nf);
+                auto t0 = Prm::Now();
+                Tools::Tracy::Zone zFiberJob{"Fiber(Job)"};
+                nf->StartSwitch(w->host);
+                auto t1 = Prm::Now();
+                w->m.runNs += Prm::Delta(t0, t1);
+                w->m.runCount += 1;
+                Scheduler::SetCurrentFiber(nullptr);
+                idle = 0;
+                continue;
             }
             Cap::Fiber* stolen = nullptr;
             auto ts0 = Prm::Now();
@@ -146,14 +137,14 @@ void WorkerStart(void* p) noexcept {
                 ++steals;
                 continue;
             }
-            if (sch.m_ioPoller.Load(MemoryOrder::Relaxed) == w->id) { gIoApi->Poll(); }
+            if (sch.m_ioPoller.Load(Prm::MemoryOrder::Relaxed) == w->id) { gIoApi->Poll(); }
             ++idle;
             if (idle < w->spinMax) {
-                Prm::ThreadYield();
+                SleepMs(0);
             } else {
-                if (!w->idle.Load(MemoryOrder::Relaxed)) {
+                if (!w->idle.Load(Prm::MemoryOrder::Relaxed)) {
                     bool expected = false;
-                    if (w->idle.CompareExchangeStrong(expected, true, MemoryOrder::AcqRel, MemoryOrder::Relaxed)) {
+                    if (w->idle.CompareExchangeStrong(expected, true, Prm::MemoryOrder::AcqRel, Prm::MemoryOrder::Relaxed)) {
                         sch.m_idle.Push(&w->idleNode);
                     }
                 }
@@ -162,17 +153,17 @@ void WorkerStart(void* p) noexcept {
                 auto t1 = Prm::Now();
                 auto dt = Prm::Delta(t0, t1);
                 w->m.waitNs += dt;
-                w->idle.Store(false, MemoryOrder::Release);
+                w->idle.Store(false, Prm::MemoryOrder::Release);
                 if (dt < 2'000) { w->spinMax = w->spinMax < 256 ? (w->spinMax << 1) : 256; }
                 else { w->spinMax = w->spinMax > 32 ? (w->spinMax >> 1) : 32; }
                 idle = 0;
-                if (sch.m_workerCount > 1 && sch.m_ioPoller.Load(MemoryOrder::Relaxed) == w->id) {
+                if (sch.m_workerCount > 1 && sch.m_ioPoller.Load(Prm::MemoryOrder::Relaxed) == w->id) {
                     auto nxt = (w->id + 1) % sch.m_workerCount;
-                    sch.m_ioPoller.Store(nxt, MemoryOrder::Relaxed);
+                    sch.m_ioPoller.Store(nxt, Prm::MemoryOrder::Relaxed);
                 }
             }
         }
-        Sys::ShutdownThreadMemory();
+        
     }
 
     Status Scheduler::Start(UInt32 workers) noexcept {
@@ -180,10 +171,9 @@ void WorkerStart(void* p) noexcept {
         if (workers == 0) {
             auto c = Prm::SystemInfo::Cpu(); workers = c.physicalCores ? c.physicalCores : 1;
         }
-        auto h = Prm::Heap::GetProcessDefault();
-        auto arr = Prm::Heap::AllocRaw(h, sizeof(Worker) * workers);
-        if (!arr.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-        m_workers = static_cast<Worker*>(arr.Value());
+        auto* arr = ::operator new(sizeof(Worker) * workers);
+        if (!arr) return Err(StatusDomain::System(), StatusCode::Failed);
+        m_workers = static_cast<Worker*>(arr);
         m_workerCount = workers;
         {
             auto topo = Prm::Detect();
@@ -192,20 +182,19 @@ void WorkerStart(void* p) noexcept {
         for (UInt32 i = 0; i < workers; ++i) { new (m_workers + i) Worker{}; }
         const USize cap = 1024;
         for (UInt32 i = 0; i < workers; ++i) {
-            auto sbh = Prm::Heap::AllocRaw(h, sizeof(Cap::Fiber*) * cap);
-            if (!sbh.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-            auto sbn = Prm::Heap::AllocRaw(h, sizeof(Cap::Fiber*) * cap);
-            if (!sbn.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-            if (!m_workers[i].Init(this, i, sbh.Value(), sbn.Value(), cap)) return Err(StatusDomain::System(), StatusCode::Failed);
+            void* sbh = ::operator new(sizeof(Cap::Fiber*) * cap);
+            if (!sbh) return Err(StatusDomain::System(), StatusCode::Failed);
+            void* sbn = ::operator new(sizeof(Cap::Fiber*) * cap);
+            if (!sbn) return Err(StatusDomain::System(), StatusCode::Failed);
+            if (!m_workers[i].Init(this, i, sbh, sbn, cap)) return Err(StatusDomain::System(), StatusCode::Failed);
         }
         {
             auto cms = Prm::EnumerateCoreMasks();
             auto nms = Prm::EnumerateNumaNodeMasks();
             if (cms.data && cms.count > 0) {
-                auto h2 = Prm::Heap::GetProcessDefault();
-                auto ra = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
-                if (!ra.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-                m_numaOfWorker = static_cast<UInt32*>(ra.Value());
+                auto* ra = static_cast<UInt32*>(::operator new(sizeof(UInt32) * m_workerCount));
+                if (!ra) return Err(StatusDomain::System(), StatusCode::Failed);
+                m_numaOfWorker = ra;
                 for (UInt32 i = 0; i < m_workerCount; ++i) { m_numaOfWorker[i] = 0u; }
                 UInt32 gs = m_groupSize ? m_groupSize : 1u;
                 for (UInt32 i = 0; i < m_workerCount; ++i) {
@@ -232,18 +221,18 @@ void WorkerStart(void* p) noexcept {
                 }
                 UInt32 nodeMax = 0u; for (USize j = 0; j < nms.count; ++j) { if (nms.data[j].node > nodeMax) nodeMax = nms.data[j].node; }
                 m_numaNodeCount = (nms.count > 0) ? (nodeMax + 1u) : 1u;
-                auto rc = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_numaNodeCount);
-                if (!rc.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-                m_numaCounts = static_cast<UInt32*>(rc.Value());
+                auto* rc = static_cast<UInt32*>(::operator new(sizeof(UInt32) * m_numaNodeCount));
+                if (!rc) return Err(StatusDomain::System(), StatusCode::Failed);
+                m_numaCounts = rc;
                 for (UInt32 i = 0; i < m_numaNodeCount; ++i) { m_numaCounts[i] = 0u; }
                 for (UInt32 i = 0; i < m_workerCount; ++i) { ++m_numaCounts[m_numaOfWorker[i]]; }
-                auto rof = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_numaNodeCount);
-                if (!rof.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-                m_numaOffsets = static_cast<UInt32*>(rof.Value());
+                auto* rof = static_cast<UInt32*>(::operator new(sizeof(UInt32) * m_numaNodeCount));
+                if (!rof) return Err(StatusDomain::System(), StatusCode::Failed);
+                m_numaOffsets = rof;
                 UInt32 acc = 0u; for (UInt32 i = 0; i < m_numaNodeCount; ++i) { m_numaOffsets[i] = acc; acc += m_numaCounts[i]; }
-                auto rmm = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
-                if (!rmm.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-                m_numaMembers = static_cast<UInt32*>(rmm.Value());
+                auto* rmm = static_cast<UInt32*>(::operator new(sizeof(UInt32) * m_workerCount));
+                if (!rmm) return Err(StatusDomain::System(), StatusCode::Failed);
+                m_numaMembers = rmm;
                 for (UInt32 i = 0; i < m_numaNodeCount; ++i) { m_numaCounts[i] = 0u; }
                 for (UInt32 i = 0; i < m_workerCount; ++i) {
                     auto node = m_numaOfWorker[i]; auto off = m_numaOffsets[node]; auto pos = off + m_numaCounts[node]++;
@@ -257,10 +246,9 @@ void WorkerStart(void* p) noexcept {
             auto cms = Prm::EnumerateCoreMasks();
             auto caches = Prm::EnumerateCacheMasks();
             if (caches.data && caches.count > 0) {
-                auto h2 = Prm::Heap::GetProcessDefault();
-                auto ro = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
-                if (!ro.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-                m_l3OfWorker = static_cast<UInt32*>(ro.Value());
+                auto* ro = static_cast<UInt32*>(::operator new(sizeof(UInt32) * m_workerCount));
+                if (!ro) return Err(StatusDomain::System(), StatusCode::Failed);
+                m_l3OfWorker = ro;
                 for (UInt32 i = 0; i < m_workerCount; ++i) { m_l3OfWorker[i] = 0u; }
                 UInt32 gs = m_groupSize ? m_groupSize : 1u;
                 for (UInt32 i = 0; i < m_workerCount; ++i) {
@@ -280,18 +268,18 @@ void WorkerStart(void* p) noexcept {
                 }
                 UInt32 maxId = 0u; for (UInt32 i = 0; i < m_workerCount; ++i) { if (m_l3OfWorker[i] > maxId) maxId = m_l3OfWorker[i]; }
                 m_l3GroupCount = maxId + 1u;
-                auto rc = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_l3GroupCount);
-                if (!rc.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-                m_l3Counts = static_cast<UInt32*>(rc.Value());
+                auto* rc2 = static_cast<UInt32*>(::operator new(sizeof(UInt32) * m_l3GroupCount));
+                if (!rc2) return Err(StatusDomain::System(), StatusCode::Failed);
+                m_l3Counts = rc2;
                 for (UInt32 i = 0; i < m_l3GroupCount; ++i) { m_l3Counts[i] = 0u; }
                 for (UInt32 i = 0; i < m_workerCount; ++i) { ++m_l3Counts[m_l3OfWorker[i]]; }
-                auto rof = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_l3GroupCount);
-                if (!rof.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-                m_l3Offsets = static_cast<UInt32*>(rof.Value());
+                auto* rof2 = static_cast<UInt32*>(::operator new(sizeof(UInt32) * m_l3GroupCount));
+                if (!rof2) return Err(StatusDomain::System(), StatusCode::Failed);
+                m_l3Offsets = rof2;
                 UInt32 acc = 0u; for (UInt32 i = 0; i < m_l3GroupCount; ++i) { m_l3Offsets[i] = acc; acc += m_l3Counts[i]; }
-                auto rm = Prm::Heap::AllocRaw(h2, sizeof(UInt32) * m_workerCount);
-                if (!rm.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-                m_l3Members = static_cast<UInt32*>(rm.Value());
+                auto* rm = static_cast<UInt32*>(::operator new(sizeof(UInt32) * m_workerCount));
+                if (!rm) return Err(StatusDomain::System(), StatusCode::Failed);
+                m_l3Members = rm;
                 for (UInt32 i = 0; i < m_l3GroupCount; ++i) { m_l3Counts[i] = 0u; }
                 for (UInt32 i = 0; i < m_workerCount; ++i) {
                     auto grp = m_l3OfWorker[i]; auto off = m_l3Offsets[grp]; auto pos = off + m_l3Counts[grp]++;
@@ -302,31 +290,25 @@ void WorkerStart(void* p) noexcept {
             }
         }
         (void)gDriverApi->Init();
-        m_running.Store(true, MemoryOrder::Release);
-        m_ioPoller.Store(workers ? (workers - 1u) : 0u, MemoryOrder::Relaxed);
-        for (UInt32 i = 0; i < workers; ++i) {
-            auto th = Prm::ThreadCreate(&WorkerStart, m_workers + i);
-            if (!th.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-            m_workers[i].th = th.Value();
-        }
+        m_running.Store(true, Prm::MemoryOrder::Release);
+        m_ioPoller.Store(workers ? (workers - 1u) : 0u, Prm::MemoryOrder::Relaxed);
+        for (UInt32 i = 0; i < workers; ++i) { WorkerStart(m_workers + i); }
         return Ok(StatusDomain::System());
     }
 
     Status Scheduler::Stop() noexcept {
-        m_running.Store(false, MemoryOrder::Release);
-        for (UInt32 i = 0; i < m_workerCount; ++i) {
-            (void)Prm::ThreadJoin(m_workers[i].th);
-        }
-        auto h = Prm::Heap::GetProcessDefault();
+        m_running.Store(false, Prm::MemoryOrder::Release);
+        
+        
         for (UInt32 i = 0; i < m_workerCount; ++i) { m_workers[i].~Worker(); }
-        if (m_numaMembers) { (void)Prm::Heap::FreeRaw(h, m_numaMembers); m_numaMembers = nullptr; }
-        if (m_numaOffsets) { (void)Prm::Heap::FreeRaw(h, m_numaOffsets); m_numaOffsets = nullptr; }
-        if (m_numaCounts) { (void)Prm::Heap::FreeRaw(h, m_numaCounts); m_numaCounts = nullptr; }
-        if (m_numaOfWorker) { (void)Prm::Heap::FreeRaw(h, m_numaOfWorker); m_numaOfWorker = nullptr; }
-        if (m_l3Members) { (void)Prm::Heap::FreeRaw(h, m_l3Members); m_l3Members = nullptr; }
-        if (m_l3Offsets) { (void)Prm::Heap::FreeRaw(h, m_l3Offsets); m_l3Offsets = nullptr; }
-        if (m_l3Counts) { (void)Prm::Heap::FreeRaw(h, m_l3Counts); m_l3Counts = nullptr; }
-        if (m_l3OfWorker) { (void)Prm::Heap::FreeRaw(h, m_l3OfWorker); m_l3OfWorker = nullptr; }
+        if (m_numaMembers) { ::operator delete(m_numaMembers); m_numaMembers = nullptr; }
+        if (m_numaOffsets) { ::operator delete(m_numaOffsets); m_numaOffsets = nullptr; }
+        if (m_numaCounts) { ::operator delete(m_numaCounts); m_numaCounts = nullptr; }
+        if (m_numaOfWorker) { ::operator delete(m_numaOfWorker); m_numaOfWorker = nullptr; }
+        if (m_l3Members) { ::operator delete(m_l3Members); m_l3Members = nullptr; }
+        if (m_l3Offsets) { ::operator delete(m_l3Offsets); m_l3Offsets = nullptr; }
+        if (m_l3Counts) { ::operator delete(m_l3Counts); m_l3Counts = nullptr; }
+        if (m_l3OfWorker) { ::operator delete(m_l3OfWorker); m_l3OfWorker = nullptr; }
         m_workerCount = 0;
         gDriverApi->Shutdown();
         return Ok(StatusDomain::System());
@@ -343,7 +325,7 @@ void WorkerStart(void* p) noexcept {
                 auto* n = sch.m_idle.Pop();
                 if (!n) break;
                 auto* w = n->w;
-                if (w && w->idle.Load(MemoryOrder::Relaxed)) { w->sleep.Unpark(); ++woke; }
+                if (w && w->idle.Load(Prm::MemoryOrder::Relaxed)) { w->sleep.Unpark(); ++woke; }
                 else { if (sc < 16u) { stash[sc++] = n; } }
             }
             while (sc > 0u) { sch.m_idle.Push(stash[--sc]); }
@@ -366,7 +348,7 @@ void WorkerStart(void* p) noexcept {
                 auto* n = sch.m_idle.Pop();
                 if (!n) break;
                 auto* w = n->w;
-                if (w && w->idle.Load(MemoryOrder::Relaxed)) { w->sleep.Unpark(); ++woke; }
+                if (w && w->idle.Load(Prm::MemoryOrder::Relaxed)) { w->sleep.Unpark(); ++woke; }
                 else { if (sc < 16u) { stash[sc++] = n; } }
             }
             while (sc > 0u) { sch.m_idle.Push(stash[--sc]); }
@@ -386,7 +368,7 @@ void WorkerStart(void* p) noexcept {
                 auto* n = sch.m_idle.Pop();
                 if (!n) break;
                 auto* w = n->w;
-                if (w && w->idle.Load(MemoryOrder::Relaxed)) { w->sleep.Unpark(); ++woke; }
+                if (w && w->idle.Load(Prm::MemoryOrder::Relaxed)) { w->sleep.Unpark(); ++woke; }
                 else { if (sc < 32u) { stash[sc++] = n; } }
             }
             while (sc > 0u) { sch.m_idle.Push(stash[--sc]); }
@@ -413,12 +395,10 @@ void WorkerStart(void* p) noexcept {
             auto* pack = static_cast<FnPack*>(p);
             pack->fn(pack->arg);
             pack->cc->SignalComplete();
-            (void)Prm::Heap::FreeRaw(Prm::Heap::GetProcessDefault(), p);
+            ::operator delete(p);
         };
-        auto h = Prm::Heap::GetProcessDefault();
-        auto rn = Prm::Heap::AllocRaw(h, sizeof(FnPack));
-        if (!rn.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-        void* mem = rn.Value();
+        void* mem = ::operator new(sizeof(FnPack));
+        if (!mem) return Err(StatusDomain::System(), StatusCode::Failed);
         auto* pack = new (mem) FnPack{ real, realArg, &c };
         Cap::Job jj{}; jj.invoke = reinterpret_cast<void(*)(void*) noexcept>(j.invoke); jj.arg = pack; jj.qos = j.qos;
         return sch.Submit(jj);
@@ -440,20 +420,20 @@ void WorkerStart(void* p) noexcept {
         if (c.Value() == 0u) return;
         if (!c.RegisterWait(cf)) return;
         cf->state = Cap::FiberState::Waiting;
-        Prm::SwapContexts(cf->ctx, *cf->retCtx);
+        cf->StartSwitch(cf->retCtx);
         cf->state = Cap::FiberState::Running;
     }
 
     void WaitForCounter(Cap::Counter& c) noexcept {
         auto* cf = Scheduler::CurrentFiber();
         if (!cf) {
-            while (c.Value() > 0u) { Prm::ThreadYield(); }
+            while (c.Value() > 0u) { SleepMs(0); }
             return;
         }
         if (c.Value() == 0u) return;
         if (!c.RegisterWait(cf)) return;
         cf->state = Cap::FiberState::Waiting;
-        Prm::SwapContexts(cf->ctx, *cf->retCtx);
+        cf->StartSwitch(cf->retCtx);
         cf->state = Cap::FiberState::Running;
     }
 
@@ -462,26 +442,23 @@ void WorkerStart(void* p) noexcept {
         if (!cf) return;
         cf->state = Cap::FiberState::Waiting;
         if (reg) reg(cf, ctx);
-        Prm::SwapContexts(cf->ctx, *cf->retCtx);
+        cf->StartSwitch(cf->retCtx);
         cf->state = Cap::FiberState::Running;
     }
 
-    Status AwaitEvent(Prm::EventHandle h) noexcept {
+    Status AwaitEvent(void* h) noexcept {
         auto* cf = Scheduler::CurrentFiber();
-        if (!cf) {
-            for (;;) { auto r = Prm::EventWait(h, 1u); if (r.Ok()) break; Prm::ThreadYield(); }
-            return Ok(StatusDomain::System());
-        }
+        if (!cf) { return Ok(StatusDomain::System()); }
         if (!gSignalApi->AddEvent(h, cf)) {
             return Err(StatusDomain::System(), StatusCode::Failed);
         }
         cf->state = Cap::FiberState::Waiting;
-        Prm::SwapContexts(cf->ctx, *cf->retCtx);
+        cf->StartSwitch(cf->retCtx);
         cf->state = Cap::FiberState::Running;
         return Ok(StatusDomain::System());
     }
 
     Status AwaitTimeout(UInt32 ms) noexcept { SleepMs(ms); return Ok(StatusDomain::System()); }
-    Status Await(Prm::EventHandle h) noexcept { return AwaitEvent(h); }
+    Status Await(void* h) noexcept { return AwaitEvent(h); }
     Status AwaitMs(UInt32 ms) noexcept { return AwaitTimeout(ms); }
 }

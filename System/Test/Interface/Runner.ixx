@@ -1,19 +1,22 @@
 module;
 
-export module Test:Runner;
+export module Sys.Job.Test:Runner;
 
 import <exception>;
 import <new>;
 
-import Language;
-import Memory;
-import Concurrency;
+import Lang;
+import Cap.Memory;
+import Cap.Concurrency;
+import Prm.Sync;
+import Sys;
+//
 
 import :Core;
 import :Context;
 import :Registration;
 
-export namespace Test {
+export namespace Sys {
 
     struct RunConfig {
         UInt32 workerCount{4};
@@ -31,15 +34,16 @@ export namespace Test {
         struct JobPayload {
             const TestEntry* entry{nullptr};
             RunConfig config{};
-            Atomic<UInt64>* passed{nullptr};
-            Atomic<UInt64>* failed{nullptr};
-            Atomic<UInt64>* skipped{nullptr};
-            Atomic<UInt64>* timed{nullptr};
-            Atomic<UInt64>* totalMicros{nullptr};
+        Cap::Atomic<UInt64>* passed{nullptr};
+        Cap::Atomic<UInt64>* failed{nullptr};
+        Cap::Atomic<UInt64>* skipped{nullptr};
+        Cap::Atomic<UInt64>* timed{nullptr};
+        Cap::Atomic<UInt64>* totalMicros{nullptr};
+        Cap::Counter* counter{nullptr};
         };
 
         inline void ExecuteTest(JobPayload& payload) noexcept {
-            Memory::FrameAllocatorResource arena(payload.config.frameArenaSize);
+            Cap::FrameAllocatorResource arena(payload.config.frameArenaSize);
             FrameAllocatorAdapter allocator(arena);
             FrameMemoryTracker tracker;
             HighResolutionTestTimer timer;
@@ -78,23 +82,19 @@ export namespace Test {
             context.SetState(TestState::Completed);
 
             auto micros = static_cast<UInt64>(timer.GetElapsedTimeMs() * 1000.0);
-            payload.totalMicros->fetch_add(micros);
+            payload.totalMicros->FetchAdd(micros, Prm::MemoryOrder::AcqRel);
 
             const auto result = context.GetResult();
-            if (result.IsSuccess()) {
-                payload.passed->fetch_add(1);
-            } else if (result.IsSkipped()) {
-                payload.skipped->fetch_add(1);
-            } else if (result.IsTimeout()) {
-                payload.timed->fetch_add(1);
-            } else {
-                payload.failed->fetch_add(1);
-            }
+            if (result.IsSuccess()) { payload.passed->FetchAdd(1, Prm::MemoryOrder::AcqRel); }
+            else if (result.IsSkipped()) { payload.skipped->FetchAdd(1, Prm::MemoryOrder::AcqRel); }
+            else if (result.IsTimeout()) { payload.timed->FetchAdd(1, Prm::MemoryOrder::AcqRel); }
+            else { payload.failed->FetchAdd(1, Prm::MemoryOrder::AcqRel); }
         }
 
         inline void JobEntry(void* arg) noexcept {
             auto* payload = static_cast<JobPayload*>(arg);
             ExecuteTest(*payload);
+            if (payload->counter) { payload->counter->SignalComplete(); }
             delete payload;
         }
     }
@@ -106,25 +106,21 @@ export namespace Test {
         summary.statistics.totalTests = total;
 
         auto workers = config.workerCount == 0 ? 1u : config.workerCount;
-        auto& scheduler = Concurrency::Scheduler::Instance();
-        if (!scheduler.Start(workers).Ok()) {
-            summary.exitCode = 1;
-            return summary;
-        }
 
-        Concurrency::Counter counter{};
+        Cap::Atomic<UInt64> passed{0};
+        Cap::Atomic<UInt64> failed{0};
+        Cap::Atomic<UInt64> skipped{0};
+        Cap::Atomic<UInt64> timed{0};
+        Cap::Atomic<UInt64> totalMicros{0};
+
+        (void)Sys::JobStart(workers);
+        Cap::Counter counter{};
         counter.Reset(static_cast<UInt32>(total));
-
-        Atomic<UInt64> passed{0};
-        Atomic<UInt64> failed{0};
-        Atomic<UInt64> skipped{0};
-        Atomic<UInt64> timed{0};
-        Atomic<UInt64> totalMicros{0};
 
         for (USize i = 0; i < total; ++i) {
             auto* payload = new(std::nothrow) Detail::JobPayload{};
             if (!payload) {
-                failed.fetch_add(1);
+                (void)failed.FetchAdd(1, Prm::MemoryOrder::AcqRel);
                 continue;
             }
             payload->entry = &registry.Get(i);
@@ -134,24 +130,21 @@ export namespace Test {
             payload->skipped = &skipped;
             payload->timed = &timed;
             payload->totalMicros = &totalMicros;
+            payload->counter = &counter;
 
-            Concurrency::Job job{};
+            Cap::Job job{};
             job.invoke = &Detail::JobEntry;
             job.arg = payload;
-            if (!Concurrency::RunWithCounter(job, counter).Ok()) {
-                delete payload;
-                failed.fetch_add(1);
-            }
+            (void)Sys::RunWithCounter(job, counter);
         }
+        Sys::WaitForCounter(counter);
+        Sys::JobStop();
 
-        Concurrency::WaitForCounter(counter);
-        (void)scheduler.Stop();
-
-        summary.statistics.passedTests = passed.load();
-        summary.statistics.failedTests = failed.load();
-        summary.statistics.skippedTests = skipped.load();
-        summary.statistics.timedOutTests = timed.load();
-        summary.statistics.totalTimeMs = static_cast<Float64>(totalMicros.load()) / 1000.0;
+        summary.statistics.passedTests = passed.Load(Prm::MemoryOrder::Acquire);
+        summary.statistics.failedTests = failed.Load(Prm::MemoryOrder::Acquire);
+        summary.statistics.skippedTests = skipped.Load(Prm::MemoryOrder::Acquire);
+        summary.statistics.timedOutTests = timed.Load(Prm::MemoryOrder::Acquire);
+        summary.statistics.totalTimeMs = static_cast<Float64>(totalMicros.Load(Prm::MemoryOrder::Acquire)) / 1000.0;
         summary.statistics.averageTimeMs = summary.statistics.totalTests == 0
             ? 0.0
             : summary.statistics.totalTimeMs / static_cast<Float64>(summary.statistics.totalTests);

@@ -1,7 +1,7 @@
 module;
 export module Engine.Gameplay:Interfaces;
 
-import Language;
+import Lang;
 import Engine.Scene;
 
 export namespace Engine::Gameplay {

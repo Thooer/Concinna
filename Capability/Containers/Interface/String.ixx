@@ -1,5 +1,5 @@
 export module Containers:String;
-import Language;
+import Lang;
 import Cap.Memory;
 import <type_traits>;
 

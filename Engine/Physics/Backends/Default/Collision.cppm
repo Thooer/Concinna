@@ -1,7 +1,7 @@
 module;
 export module Engine.Physics:Collision;
 
-import Language;
+import Lang;
 import :Types;
 import Foundation.Memory;
 // use Collider from :Types

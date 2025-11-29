@@ -1,6 +1,6 @@
 export module Prm.System;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 export import :Topology;
 
 export namespace Prm {

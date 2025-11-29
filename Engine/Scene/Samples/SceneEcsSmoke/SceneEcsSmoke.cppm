@@ -1,7 +1,7 @@
 module;
 export module Engine.Scene.SceneEcsSmoke;
 
-import Language;
+import Lang;
 import Engine.Scene;
 import Foundation.Memory;
 import Foundation.IO;

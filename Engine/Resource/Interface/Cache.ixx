@@ -1,7 +1,7 @@
 module;
 export module Engine.Resource:Cache;
 
-import Language;
+import Lang;
 import Foundation.Memory;
 import :Handle;
 

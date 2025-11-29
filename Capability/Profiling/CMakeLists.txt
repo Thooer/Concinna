@@ -11,7 +11,7 @@ add_module_from_dirs(Profiling
   BACKEND_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/Backends
   EXCLUDE_FILES ${PROFILING_EXCLUDE}
 )
-target_link_libraries(Profiling PRIVATE Language Platform)
+target_link_libraries(Profiling PRIVATE Lang Stream Time)
 if(PROFILING_BACKEND STREQUAL "Tracy")
   target_link_libraries(Profiling PRIVATE Tools.Tracy)
 endif()

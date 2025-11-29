@@ -2,7 +2,7 @@ module;
 #include <cstdio>
 export module Engine.Runtime.MainlineARuntime;
 
-import Language;
+import Lang;
 import Foundation.Time;
 import Foundation.Profiling;
 import Foundation.Memory;

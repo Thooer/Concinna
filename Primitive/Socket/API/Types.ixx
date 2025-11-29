@@ -1,6 +1,6 @@
 export module Prm.Socket:Types;
-import Element;
-import Paradigm;
+import Lang.Element;
+import Lang.Paradigm;
 
 export namespace Prm {
     struct SocketHandleTag;

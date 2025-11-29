@@ -1,6 +1,6 @@
 module Prm.Time;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 import Prm.Time;
 
 namespace Prm {

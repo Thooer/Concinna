@@ -1,5 +1,5 @@
-export module Reflection:MemberInfo;
-import Element;
+export module Lang.Reflection:MemberInfo;
+import Lang.Element;
 import :TypeID;
 import :TypeInfo;
 import <concepts>;

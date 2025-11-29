@@ -1,6 +1,6 @@
 export module Prm.Threading:ThreadSync;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 import :Types;
 
 export namespace Prm {

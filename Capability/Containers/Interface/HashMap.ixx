@@ -1,6 +1,6 @@
 export module Containers:HashMap;
 
-import Language;
+import Lang;
 import SIMD;
 import Cap.Memory;
 import :String;

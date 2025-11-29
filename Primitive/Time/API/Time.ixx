@@ -1,6 +1,6 @@
 export module Prm.Time;
-import Element;
-import Flow;
+import Lang.Element;
+import Lang.Flow;
 export import :Types;
 export import :Clock;
 export import :Utils;

@@ -1,9 +1,8 @@
 module Cap.Concurrency;
-import Language;
-import Memory;
-import Platform;
-import Prm.Ownership:Memory;
-import Prm.Threading:ThreadSync;
+import Lang;
+import Cap.Memory;
+import Prm.Ownership;
+import Prm.Threading;
 import :Counter;
 
 namespace Cap {

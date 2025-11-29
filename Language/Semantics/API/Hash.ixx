@@ -1,12 +1,12 @@
-export module Semantics:Hash;
+export module Lang.Semantics:Hash;
 
  
 import <string_view>;
 import <string>;
 import <ranges>;
 
-import Element;
-import Meta;
+import Lang.Element;
+import Lang.Meta;
 
 // ============================================================================
 // Hash Algorithms

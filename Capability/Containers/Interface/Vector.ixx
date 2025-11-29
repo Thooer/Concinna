@@ -1,6 +1,6 @@
 export module Containers:Vector;
 
-import Language;
+import Lang;
 import Cap.Memory;
 import :Traits;
 import <type_traits>;

@@ -1,13 +1,13 @@
 module;
-export module Engine.Renderer:Types;
+export module Eng.Renderer:Types;
 
-import Language;
+import Lang;
  
 
-export namespace Engine::Renderer {
+export namespace Eng::Renderer {
     struct RenderInstance {
         float model[16]{};
-        Language::UInt32 mesh{};
-        Language::UInt32 mat{};
+        UInt32 mesh{};
+        UInt32 mat{};
     };
 }

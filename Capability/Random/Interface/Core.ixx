@@ -1,6 +1,6 @@
 export module Cap.Random:Core;
 
-import Language;
+import Lang;
 
 export namespace Cap::Random {
     template<typename T>

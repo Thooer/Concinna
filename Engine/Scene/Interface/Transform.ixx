@@ -1,7 +1,7 @@
 module;
 export module Engine.Scene:Transform;
 
-import Language;
+import Lang;
 import :Types;
 import :World;
 

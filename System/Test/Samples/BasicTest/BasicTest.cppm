@@ -12,8 +12,8 @@ module;
 
 export module BasicTest;
 
-import Language;
-import Language:Error;
+import Lang;
+import Lang:Error;
 import Test;
 import Test:Context;
 import Test:Assertions;

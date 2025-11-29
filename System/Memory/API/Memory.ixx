@@ -1,4 +1,4 @@
-export module System.Memory;
+export module Sys.Memory;
 
 export namespace Sys {
     export void InitThreadMemory() noexcept;

@@ -1,6 +1,6 @@
 export module Cap.Random:Context;
 
-import Language;
+import Lang;
 import :Core;
 import :Engines;
 

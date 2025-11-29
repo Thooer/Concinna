@@ -1,7 +1,7 @@
 module;
 module Engine.Runtime:TaskHook;
 
-import Language;
+import Lang;
 import Foundation.Concurrency;
 import Foundation.Containers;
 import Foundation.Memory;

@@ -1,7 +1,7 @@
 export module Cap.Algorithms:Primitives;
 
-import Language;
-import Element;
+import Lang;
+import Lang.Element;
 import :Policy;
 
 export namespace Cap {

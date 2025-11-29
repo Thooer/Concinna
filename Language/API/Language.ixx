@@ -1,8 +1,8 @@
-export module Language;
-export import Element;
-export import Semantics;
-export import Flow;
-export import Paradigm;
-export import Text;
-export import Reflection;
-export import Meta;
+export module Lang;
+export import Lang.Element;
+export import Lang.Semantics;
+export import Lang.Flow;
+export import Lang.Paradigm;
+export import Lang.Text;
+export import Lang.Reflection;
+export import Lang.Meta;

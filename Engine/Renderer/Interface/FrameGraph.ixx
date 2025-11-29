@@ -1,7 +1,7 @@
 module;
 export module Engine.Renderer:FrameGraph;
 
-import Language;
+import Lang;
 import Foundation.Memory;
 import Foundation.Containers;
 import Engine.Scene;

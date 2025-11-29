@@ -1,6 +1,6 @@
 module;
 export module SIMD;
-import Language;
+import Lang;
 
 export import :Packet;
 export import :Ops;

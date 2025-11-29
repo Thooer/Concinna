@@ -1,30 +1,27 @@
-module System.Job;
-import Language;
-import Memory;
-import Prm.Ownership:Memory;
-import System.Job:Mutex;
-import Cap.Concurrency:Fiber;
-import System.Job:Scheduler;
+module Sys;
+import Lang;
+import Cap.Memory;
+import Prm.Ownership;
+import Sys;
+import Cap.Concurrency;
 
 namespace Sys {
     bool FiberMutex::TryLock() noexcept {
         bool expected = false;
-        return m_locked.CompareExchangeStrong(expected, true, MemoryOrder::Acquire, MemoryOrder::Relaxed);
+        return m_locked.CompareExchangeStrong(expected, true, Prm::MemoryOrder::Acquire, Prm::MemoryOrder::Relaxed);
     }
 
     void FiberMutex::Lock() noexcept {
         if (TryLock()) return;
-        Backoff back{};
+        Prm::Backoff back{};
         for (int i = 0; i < 64; ++i) {
             if (TryLock()) return;
             back.Next();
         }
         auto reg = +[](Cap::Fiber* f, void* ctx) noexcept {
             auto* self = static_cast<FiberMutex*>(ctx);
-            auto h = Prm::Heap::GetProcessDefault();
-            auto rn = Prm::Heap::AllocRaw(h, sizeof(WaitNode));
-            if (!rn.IsOk()) return;
-            void* mem = rn.Value();
+            void* mem = ::operator new(sizeof(WaitNode));
+            if (!mem) return;
             auto* n = new (mem) WaitNode{};
             n->fiber = f;
             self->m_waiters.Push(n);
@@ -37,12 +34,11 @@ namespace Sys {
     }
 
     void FiberMutex::Unlock() noexcept {
-        m_locked.Store(false, MemoryOrder::Release);
+        m_locked.Store(false, Prm::MemoryOrder::Release);
         auto* n = m_waiters.Pop();
         if (n) {
             Scheduler::Instance().ResumeFiber(n->fiber);
-            auto h = Prm::Heap::GetProcessDefault();
-            (void)Prm::Heap::FreeRaw(h, n);
+            ::operator delete(n);
         }
     }
 }

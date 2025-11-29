@@ -1,7 +1,7 @@
 module;
 module Engine.Renderer;
 
-import Language;
+import Lang;
 import :CommandList;
 import :Simple;
 

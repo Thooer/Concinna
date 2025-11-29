@@ -1,7 +1,7 @@
 module;
 export module Engine.Physics.DBVTPerfSmoke;
 
-import Language;
+import Lang;
 import Engine.Physics;
 import Foundation.Time;
 

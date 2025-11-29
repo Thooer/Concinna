@@ -1,7 +1,7 @@
 export module Cap.Memory:ConcurrentContainers;
 
-import Language;
-import Flow;
+import Lang;
+import Lang.Flow;
 import Prm.Ownership;
 import Prm.Sync;
  

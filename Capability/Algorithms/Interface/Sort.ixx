@@ -1,6 +1,6 @@
 export module Cap.Algorithms:Sort;
 
-import Language;
+import Lang;
 import :Policy;
 
 export namespace Cap {

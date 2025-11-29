@@ -1,10 +1,10 @@
-export module Paradigm:StrongAlias;
+export module Lang.Paradigm:StrongAlias;
 
 import <cstdint>;
 import <cstddef>;
 import <type_traits>;
 import <limits>;
-import Element;
+import Lang.Element;
 struct hash_t; struct equals_t; struct compare_t;
  
 

@@ -1,7 +1,7 @@
 module;
 export module Engine.Scene:Types;
 
-import Language;
+import Lang;
 
 export namespace Engine::Scene {
     using Entity = Language::UInt32;

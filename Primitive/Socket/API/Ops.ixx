@@ -1,8 +1,8 @@
 export module Prm.Socket:Ops;
-import Element;
-import Flow;
-import Text;
-import Paradigm;
+import Lang.Element;
+import Lang.Flow;
+import Lang.Text;
+import Lang.Paradigm;
 import :Types;
 
 export namespace Prm {

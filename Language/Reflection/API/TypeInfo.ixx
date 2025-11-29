@@ -1,5 +1,5 @@
-export module Reflection:TypeInfo;
-import Element;
+export module Lang.Reflection:TypeInfo;
+import Lang.Element;
 
 namespace detail {
     template<typename T>

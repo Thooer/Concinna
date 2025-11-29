@@ -4,10 +4,10 @@
 #include <windows.h>
 #include <new> // 必须包含，用于 Expect 模板中的 placement new
 import Prm.Window;
-import Element;
-import Flow;
-import Paradigm;
-import Text;
+import Lang.Element;
+import Lang.Flow;
+import Lang.Paradigm;
+import Lang.Text;
 
 using namespace Prm;
 
@@ -19,13 +19,17 @@ namespace Prm {
     // 全局存储用户回调
     static WndProcCallback g_userWndProc{nullptr};
 
+    static RawEventCallback g_rawEventCb{nullptr};
     // 静态桥接函数
-    static Int64 __stdcall _WndProcBridge(void* hWnd, unsigned int Msg, UInt64 wParam, Int64 lParam) {
+    static LRESULT CALLBACK _WndProcBridge(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
+        if (g_rawEventCb && (Msg == WM_INPUT || Msg == WM_KEYDOWN || Msg == WM_KEYUP || Msg == WM_MOUSEMOVE || Msg == WM_LBUTTONDOWN || Msg == WM_LBUTTONUP || Msg == WM_RBUTTONDOWN || Msg == WM_RBUTTONUP || Msg == WM_MOUSEWHEEL)) {
+            g_rawEventCb(reinterpret_cast<void*>(hWnd), static_cast<UInt32>(Msg), static_cast<UIntPtr>(wParam), static_cast<IntPtr>(lParam));
+        }
         auto cb = g_userWndProc;
         if (cb) {
-            return cb(hWnd, static_cast<UInt32>(Msg), static_cast<UIntPtr>(wParam), static_cast<IntPtr>(lParam));
+            (void)cb(reinterpret_cast<void*>(hWnd), static_cast<UInt32>(Msg), static_cast<UIntPtr>(wParam), static_cast<IntPtr>(lParam));
         }
-        return DefWindowProcA(reinterpret_cast<HWND>(hWnd), Msg, static_cast<WPARAM>(wParam), static_cast<LPARAM>(lParam));
+        return DefWindowProcA(hWnd, Msg, wParam, lParam);
     }
 
    Expect<WindowHandle> Window::Create(const WindowDesc& desc, WndProcCallback callback) noexcept {
@@ -33,30 +37,36 @@ namespace Prm {
             return Expect<WindowHandle>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
         }
 
-        WNDCLASSA wc{};
-        wc.style        = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+        WNDCLASSEXW wc{};
+        wc.cbSize       = sizeof(WNDCLASSEXW);
+        wc.style        = CS_HREDRAW | CS_VREDRAW;
         g_userWndProc   = callback;
-        wc.lpfnWndProc  = reinterpret_cast<WNDPROC>(&_WndProcBridge);
+        wc.lpfnWndProc  = DefWindowProcW;
         wc.cbClsExtra   = 0;
         wc.cbWndExtra   = 0;
         wc.hInstance    = GetModuleHandleA(nullptr);
-        wc.hIcon        = nullptr;
-        wc.hCursor      = nullptr;
+        wc.hIcon        = LoadIconW(nullptr, MAKEINTRESOURCEW(IDI_APPLICATION));
+        wc.hCursor      = LoadCursorW(nullptr, MAKEINTRESOURCEW(IDC_ARROW));
         wc.hbrBackground= nullptr;
         wc.lpszMenuName = nullptr;
-        wc.lpszClassName= "EngineWindow";
+        wc.lpszClassName= L"EngineWindowW";
 
-        const ATOM atom = RegisterClassA(&wc);
-        (void)atom;
+        ATOM atom = 0;
+        WNDCLASSEXW exist{}; exist.cbSize = sizeof(WNDCLASSEXW);
+        if (!GetClassInfoExW(wc.hInstance, wc.lpszClassName, &exist)) {
+            atom = RegisterClassExW(&wc);
+            (void)atom;
+        }
 
         const unsigned long style = WS_OVERLAPPEDWINDOW | (desc.visible ? WS_VISIBLE : 0);
-        HWND hWnd = CreateWindowExA(0, wc.lpszClassName, "Nova Engine",
+        HWND hWnd = CreateWindowExW(0, wc.lpszClassName, L"Nova Engine",
                                      style, 100, 100,
                                      static_cast<int>(desc.width), static_cast<int>(desc.height),
                                      nullptr, nullptr, wc.hInstance, nullptr);
         if (!hWnd) {
             return Expect<WindowHandle>::Err(Err(StatusDomain::System(), StatusCode::Failed));
         }
+        (void)SetWindowLongPtrW(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&_WndProcBridge));
         if (desc.visible) {
             ShowWindow(hWnd, SW_SHOW);
             UpdateWindow(hWnd);
@@ -103,9 +113,9 @@ namespace Prm {
     bool Window::ProcessOneMessage(WindowHandle h) noexcept {
         MSG msg{};
         HWND hwnd = h.Get() ? reinterpret_cast<HWND>(h.Get()) : nullptr;
-        if (PeekMessageA(&msg, hwnd, 0u, 0u, PM_REMOVE)) {
+        if (PeekMessageW(&msg, hwnd, 0u, 0u, PM_REMOVE)) {
             (void)TranslateMessage(&msg);
-            (void)DispatchMessageA(&msg);
+            (void)DispatchMessageW(&msg);
             return true;
         }
         return false;
@@ -123,6 +133,8 @@ namespace Prm {
     Expect<void*> Window::Native(WindowHandle h) noexcept {
         return h.Get() ? Expect<void*>::Ok(h.Get()) : Expect<void*>::Err(Err(StatusDomain::System(), StatusCode::InvalidArgument));
     }
+
+    void Window::SetRawEventCallback(RawEventCallback cb) noexcept { g_rawEventCb = cb; }
 }
 
 // ---- C ABI 稳定入口 ----

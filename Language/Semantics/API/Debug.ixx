@@ -1,5 +1,5 @@
 module;
-export module Semantics:Debug;
+export module Lang.Semantics:Debug;
 import <cstddef>;
 
 export using AssertHandler = void(*)(const char* condition, const char* message, const char* file, int line, const char* function);

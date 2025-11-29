@@ -1,12 +1,12 @@
 module;
 export module Engine.Renderer.RHIVulkanSmoke;
 
-import Language;
+import Lang;
 import <cstdio>;
 import Foundation.Time;
 import Foundation.IO;
 import Foundation.Memory;
-import Platform;
+import Prm.Window;
 import Engine.Renderer;
 
 namespace Nova::Samples::RendererRHI {
@@ -24,37 +24,37 @@ namespace Nova::Samples::RendererRHI {
   }
   static Language::Int64 WndProc(void*, Language::UInt32, Language::UIntPtr, Language::IntPtr) { return 0; }
 export bool Run() noexcept {
-    Platform::WindowDesc wd{}; wd.width = 800; wd.height = 600; wd.visible = true; wd.resizable = false;
-    auto whr = Platform::Window::Create(wd, &WndProc);
+    Prm::WindowDesc wd{}; wd.width = 800; wd.height = 600; wd.visible = true; wd.resizable = false;
+    auto whr = Prm::Window::Create(wd, &WndProc);
     void* hwnd = nullptr;
     bool headless = false;
-    Platform::WindowHandle wh{};
+    Prm::WindowHandle wh{};
     if (!whr.IsOk()) { Log("WINFAIL"); Log("HEADLESS"); headless = true; }
     else {
       wh = whr.OkValue();
-      (void)Platform::Window::Show(wh);
-      (void)Platform::Window::SetTitle(wh, Language::StringView{"RHI:WINOK"});
-      auto nat = Platform::Window::Native(wh);
-      if (!nat.IsOk()) { Log("NATFAIL"); (void)Platform::Window::SetTitle(wh, Language::StringView{"RHI:NATFAIL"}); Platform::Window::Destroy(wh); headless = true; }
+      (void)Prm::Window::Show(wh);
+      (void)Prm::Window::SetTitle(wh, Language::StringView{"RHI:WINOK"});
+      auto nat = Prm::Window::Native(wh);
+      if (!nat.IsOk()) { Log("NATFAIL"); (void)Prm::Window::SetTitle(wh, Language::StringView{"RHI:NATFAIL"}); Prm::Window::Destroy(wh); headless = true; }
       else { hwnd = nat.OkValue(); }
     }
 
     Engine::Renderer::RHI::DeviceCreateInfo dci{};
     auto dr = Engine::Renderer::RHI::CreateDevice(dci);
-    if (!dr.IsOk()) { Log("DEVFAIL"); (void)Platform::Window::SetTitle(wh, Language::StringView{"RHI:DEVFAIL"}); Platform::Window::Destroy(wh); return false; }
+    if (!dr.IsOk()) { Log("DEVFAIL"); (void)Prm::Window::SetTitle(wh, Language::StringView{"RHI:DEVFAIL"}); Prm::Window::Destroy(wh); return false; }
     auto dev = dr.OkValue(); Log("DEVOK");
-    if (!headless) (void)Platform::Window::SetTitle(wh, Language::StringView{"RHI:DEVOK"});
+    if (!headless) (void)Prm::Window::SetTitle(wh, Language::StringView{"RHI:DEVOK"});
 
     Engine::Renderer::RHI::SurfaceInfo si{}; si.hwnd = hwnd; si.width = wd.width; si.height = wd.height;
     auto sr = Engine::Renderer::RHI::CreateSwapchain(dev, si); Log("SWAPCALL");
-    if (!sr.IsOk()) { Log("SWAPFAIL"); if (!headless) (void)Platform::Window::SetTitle(wh, Language::StringView{"RHI:SWPFAIL"}); Engine::Renderer::RHI::DestroyDevice(dev); if (!headless) Platform::Window::Destroy(wh); return false; }
+    if (!sr.IsOk()) { Log("SWAPFAIL"); if (!headless) (void)Prm::Window::SetTitle(wh, Language::StringView{"RHI:SWPFAIL"}); Engine::Renderer::RHI::DestroyDevice(dev); if (!headless) Prm::Window::Destroy(wh); return false; }
     auto sc = sr.OkValue(); Log("SWAPOK");
-    if (!headless) (void)Platform::Window::SetTitle(wh, Language::StringView{"RHI:SWPOK"});
+    if (!headless) (void)Prm::Window::SetTitle(wh, Language::StringView{"RHI:SWPOK"});
 
     auto qr = Engine::Renderer::RHI::GetQueue(dev, Engine::Renderer::RHI::QueueType::Graphics); Log("QCALL");
-    if (!qr.IsOk()) { Log("QFAIL"); if (!headless) (void)Platform::Window::SetTitle(wh, Language::StringView{"RHI:QFAIL"}); Engine::Renderer::RHI::DestroySwapchain(dev, sc); Engine::Renderer::RHI::DestroyDevice(dev); if (!headless) Platform::Window::Destroy(wh); return false; }
+    if (!qr.IsOk()) { Log("QFAIL"); if (!headless) (void)Prm::Window::SetTitle(wh, Language::StringView{"RHI:QFAIL"}); Engine::Renderer::RHI::DestroySwapchain(dev, sc); Engine::Renderer::RHI::DestroyDevice(dev); if (!headless) Prm::Window::Destroy(wh); return false; }
     auto q = qr.OkValue(); Log("QOK");
-    if (!headless) (void)Platform::Window::SetTitle(wh, Language::StringView{"RHI:QOK"});
+    if (!headless) (void)Prm::Window::SetTitle(wh, Language::StringView{"RHI:QOK"});
 
     Engine::Renderer::RHI::CommandList cmd{};
     cmd.ClearColor(0.1f, 0.2f, 0.4f, 1.0f);
@@ -97,7 +97,7 @@ export bool Run() noexcept {
       build_ms += Foundation::Time::SteadyClock::ToMilliseconds(Foundation::Time::SteadyClock::Delta(t0, t1));
       submit_ms += Foundation::Time::SteadyClock::ToMilliseconds(Foundation::Time::SteadyClock::Delta(t1, t2));
       passes += static_cast<Language::USize>(1);
-      if (!headless) (void)Platform::Window::ProcessOneMessage(wh);
+      if (!headless) (void)Prm::Window::ProcessOneMessage(wh);
     }
 
     (void)Foundation::IO::Path::CreateDirectory(Language::StringView{"Build"});
@@ -132,7 +132,7 @@ export bool Run() noexcept {
     Engine::Renderer::RHI::DestroySwapchain(dev, sc);
     Engine::Renderer::RHI::DestroyDevice(dev);
     if (alloc) { ::Foundation::Memory::DestroyRuntimeAllocator(alloc); }
-    if (!headless) Platform::Window::Destroy(wh);
+    if (!headless) Prm::Window::Destroy(wh);
     return true;
 }
 }

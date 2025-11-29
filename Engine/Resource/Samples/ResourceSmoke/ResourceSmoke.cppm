@@ -1,7 +1,7 @@
 module;
 export module Engine.Resource.ResourceSmoke;
 
-import Language;
+import Lang;
 import Engine.Resource;
 import Foundation.IO;
 import Foundation.Memory;

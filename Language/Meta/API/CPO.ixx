@@ -1,6 +1,6 @@
-export module Meta:CPO;
+export module Lang.Meta:CPO;
 
-import Element;
+import Lang.Element;
 import :TagInvoke;
 
 import <type_traits>;

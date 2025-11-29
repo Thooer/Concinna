@@ -1,6 +1,6 @@
 export module Cap.Algorithms:Spatial;
 
-import Language;
+import Lang;
 import Cap.Math;
 
 export namespace Cap {

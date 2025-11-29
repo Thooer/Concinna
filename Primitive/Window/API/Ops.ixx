@@ -1,8 +1,8 @@
 export module Prm.Window:Ops;
-import Element;
-import Flow;
-import Text;
-import Paradigm;
+import Lang.Element;
+import Lang.Flow;
+import Lang.Text;
+import Lang.Paradigm;
 import :Types;
 
 export namespace Prm {
@@ -18,5 +18,7 @@ export namespace Prm {
         static Expect<void*> Native(WindowHandle h) noexcept;
 
         static bool ProcessOneMessage(WindowHandle h = WindowHandle{nullptr}) noexcept;
+
+        static void SetRawEventCallback(RawEventCallback cb) noexcept;
     };
 }

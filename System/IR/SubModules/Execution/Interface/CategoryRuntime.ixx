@@ -5,7 +5,7 @@ import Foundation.IRSystem:IR.Core.Types;
 import Foundation.IRSystem:IR.Core.Diagnostics;
 import Foundation.IRSystem:IR.IR.MorphismIR;
 import Foundation.IRSystem:IR.Core.ObjectDescriptor;
-import Language:Views;
+import Lang:Views;
 
 export namespace Foundation::IRSystem {
 

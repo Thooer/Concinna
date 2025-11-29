@@ -1,7 +1,7 @@
 module;
 export module Engine.Resource.VersioningSmoke;
 
-import Language;
+import Lang;
 import Engine.Resource;
 
 namespace Nova::Samples::ResourceVer {

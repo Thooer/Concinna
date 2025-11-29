@@ -1,7 +1,7 @@
 module;
 export module Engine.Resource:Handle;
 
-import Language;
+import Lang;
 
 export namespace Engine::Resource {
     struct ResourceIdTag {};

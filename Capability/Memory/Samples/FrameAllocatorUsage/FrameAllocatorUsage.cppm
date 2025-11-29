@@ -1,4 +1,4 @@
-import Language;
+import Lang;
 import Memory;
 
 extern "C" int main() {

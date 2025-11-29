@@ -1,4 +1,4 @@
-export module Meta;
+export module Lang.Meta;
 export import :TypeTag;
 export import :TypeList;
 export import :TypeSet;

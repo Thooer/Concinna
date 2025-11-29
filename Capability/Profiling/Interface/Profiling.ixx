@@ -1,7 +1,7 @@
 #define PROF_ZONE(name) ::Profiling::Zone __profiling_zone(name)
 module;
 export module Profiling;
-import Language;
+import Lang;
 
 export namespace Profiling {
     using FnFrameMark = void(*)() noexcept;

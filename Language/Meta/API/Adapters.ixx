@@ -1,6 +1,6 @@
-export module Meta:Adapters;
-import Element;
-import Reflection;
+export module Lang.Meta:Adapters;
+import Lang.Element;
+import Lang.Reflection;
 import :CPO;
 import <utility>;
 

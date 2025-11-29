@@ -1,6 +1,6 @@
 module;
 export module SIMD:Transcendental;
-import Language;
+import Lang;
 import <immintrin.h>;
 import <cmath>;
 import :Packet;

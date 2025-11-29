@@ -1,7 +1,7 @@
 module;
 export module Engine.Physics:Types;
 
-import Language;
+import Lang;
 // no Engine.Scene dependency to avoid build cycle
 
 export namespace Engine::Physics {

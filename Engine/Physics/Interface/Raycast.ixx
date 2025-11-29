@@ -1,7 +1,7 @@
 module;
 export module Engine.Physics:Raycast;
 
-import Language;
+import Lang;
 import :Types;
 
 export namespace Engine::Physics {

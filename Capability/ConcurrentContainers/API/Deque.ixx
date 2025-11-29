@@ -1,6 +1,6 @@
 export module Cap.ConcurrentContainers:Deque;
 
-import Language;
+import Lang;
 import Cap.Memory;
 import Prm.Sync;
 
