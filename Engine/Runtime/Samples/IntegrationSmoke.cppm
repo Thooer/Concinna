@@ -1,7 +1,7 @@
 export module Engine.Runtime.IntegrationSmoke;
 
 import Lang;
-import Foundation.Memory;
+import Cap.Memory;
 import Foundation.Time;
 import Engine.Runtime;
 import Engine.Scene;
@@ -14,15 +14,15 @@ namespace Nova::Samples::EngineIntegration {
         explicit ResourceSys(Engine::Resource::ResourceManager* m) noexcept : rm(m) {}
         bool Initialize(const ::Engine::CoreConfig&) noexcept { return true; }
         void Tick(float) noexcept {
-            const ::Language::Char8* p = reinterpret_cast<const ::Language::Char8*>("dummy");
-            ::Language::StringView sv(p, 5);
+            const ::Char8* p = reinterpret_cast<const ::Char8*>("dummy");
+            ::StringView sv(p, 5);
             (void)rm->LoadMesh(sv);
         }
         void Shutdown() noexcept {}
     };
     struct SceneSys : ::Engine::ISystem {
-        Engine::Scene::SceneWorld* sw{}; ::Foundation::Memory::IAllocator* alloc{};
-        SceneSys(Engine::Scene::SceneWorld* w, ::Foundation::Memory::IAllocator* a) noexcept : sw(w), alloc(a) {}
+        Engine::Scene::SceneWorld* sw{}; Cap::IAllocator* alloc{};
+        SceneSys(Engine::Scene::SceneWorld* w, Cap::IAllocator* a) noexcept : sw(w), alloc(a) {}
         bool Initialize(const ::Engine::CoreConfig&) noexcept { return true; }
         void Tick(float) noexcept { auto e = sw->CreateEntity(); Engine::Scene::Transform t{}; t.x=1; t.y=2; t.z=3; (void)sw->SetTransform(e, t); }
         void Shutdown() noexcept {}
@@ -34,14 +34,14 @@ namespace Nova::Samples::EngineIntegration {
         void Tick(float) noexcept {
             auto view = sw->GetView();
             Engine::Renderer::RenderInstance inst{};
-            for (Language::USize i=0;i<view.count;++i) { (void)r->Submit(&inst, 1); }
+            for (USize i=0;i<view.count;++i) { (void)r->Submit(&inst, 1); }
             r->Flush();
         }
         void Shutdown() noexcept {}
     };
 
     export bool Run() {
-        auto allocScoped = ::Foundation::Memory::CreateDefaultAllocatorScoped();
+        auto allocScoped = Cap::CreateDefaultAllocatorScoped();
         if (!allocScoped.IsOk()) return false; auto alloc = allocScoped.OkValue().Get();
         ::Engine::EngineRuntime eng{}; ::Engine::CoreConfig cfg{}; if (!eng.Initialize(cfg)) return false;
         Engine::Resource::ResourceManager rm{alloc}; Engine::Scene::SceneWorld sw{alloc}; Engine::Renderer::SimpleRenderer r{};

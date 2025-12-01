@@ -1,7 +1,9 @@
 module;
 module Prm.Threading;
 
-import :Threading;
+import :Types;
+import :ThreadSync;
+import :Fiber;
 
 namespace Prm {
     

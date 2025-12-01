@@ -2,7 +2,7 @@ export module Engine.Runtime.LoopSmoke;
 
 import Lang;
 import Foundation.Time;
-import Foundation.Containers;
+import Cap.Containers;
 import Engine.Runtime;
 
 namespace Nova::Samples::Engine {

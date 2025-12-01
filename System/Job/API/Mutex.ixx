@@ -1,4 +1,4 @@
-export module Sys:Mutex;
+export module Sys.Job:Mutex;
 
 import Lang;
 import Cap.Concurrency;

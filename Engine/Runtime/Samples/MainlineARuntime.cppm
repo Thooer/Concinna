@@ -5,7 +5,7 @@ export module Engine.Runtime.MainlineARuntime;
 import Lang;
 import Foundation.Time;
 import Foundation.Profiling;
-import Foundation.Memory;
+import Cap.Memory;
 import Engine.Runtime;
 // import Engine.Runtime:TaskHook; // covered by Engine.Runtime umbrella
 import Engine.Messaging;
@@ -44,7 +44,7 @@ namespace Nova::Samples::Engine {
 
         (void)::Engine::GetTaskSystemHook();
 
-        ::Foundation::Memory::IAllocator* alloc = nullptr;
+        Cap::IAllocator* alloc = nullptr;
         (void)alloc;
 
         ProducerSystem prod{};

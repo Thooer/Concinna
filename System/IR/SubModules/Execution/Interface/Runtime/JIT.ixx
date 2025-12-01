@@ -12,6 +12,6 @@ export namespace Foundation::IRSystem {
 struct NativeFn { MorphismIR ir; const ObjectDescriptor* desc{}; };
 
 export inline NativeFn compile(const MorphismIR& ir, const ObjectDescriptor& desc, int opt_level = 0) { NativeFn fn{}; fn.ir = ir; fn.desc = &desc; return fn; }
-export inline RunResult run(const NativeFn& fn, Language::Span<const Value> args) { if (fn.ir.blocks.size() == 1) return interpret_fast(fn.ir, *fn.desc, args); return interpret_fast(fn.ir, *fn.desc, args); }
+export inline RunResult run(const NativeFn& fn, Span<const Value> args) { if (fn.ir.blocks.size() == 1) return interpret_fast(fn.ir, *fn.desc, args); return interpret_fast(fn.ir, *fn.desc, args); }
 
 }

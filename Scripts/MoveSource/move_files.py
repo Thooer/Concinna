@@ -158,6 +158,29 @@ def copy_and_rename_file(source_path, folder_name, relative_path, file_relative_
         return False
 
 
+def merge_copied_files(output_dir):
+    merged_file_path = os.path.join(output_dir, "Amerge.txt")
+    files_to_merge = []
+    for root, dirs, files in os.walk(output_dir):
+        for f in files:
+            if f == "Amerge.txt":
+                continue
+            files_to_merge.append(os.path.join(root, f))
+    files_to_merge.sort()
+    try:
+        with open(merged_file_path, 'w', encoding='utf-8') as out:
+            for filepath in files_to_merge:
+                name = os.path.relpath(filepath, output_dir)
+                out.write(f"{name}:\n")
+                with open(filepath, 'r', encoding='utf-8', errors='replace') as fin:
+                    out.write(fin.read())
+                out.write("\n")
+        print(f"生成合并文件: {merged_file_path}")
+    except Exception as e:
+        print(f"错误: 无法生成合并文件: {e}")
+    return len(files_to_merge)
+
+
 def main():
     """主函数"""
     # 设置路径
@@ -196,6 +219,11 @@ def main():
         if copy_and_rename_file(source_path, folder_name, relative_path, file_relative_path, output_dir):
             success_count += 1
     
+    print("\n开始合并文件...")
+    merged_count = merge_copied_files(output_dir)
+    print(f"合并完成: {merged_count} 个文件")
+    print(f"合并文件: {os.path.join(output_dir, 'Amerge.txt')}")
+
     # 输出结果
     print(f"\n操作完成!")
     print(f"成功复制: {success_count} 个文件")

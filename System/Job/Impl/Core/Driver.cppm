@@ -1,4 +1,4 @@
-module Sys;
+module Sys.Job;
 extern "C" __declspec(dllimport) int GetQueuedCompletionStatus(void* h, unsigned long* bytes, unsigned long* key, void** ov, unsigned long ms);
 extern "C" __declspec(dllimport) void* CreateIoCompletionPort(void* fileHandle, void* existingPort, unsigned long key, unsigned long concurrency);
 extern "C" __declspec(dllimport) unsigned long long GetTickCount64();
@@ -15,6 +15,7 @@ namespace Sys {
     struct EventItem { void* h; Cap::Fiber* fb; };
     static struct { EventItem* items{nullptr}; USize cap{0}; USize count{0}; } gEventStore;
     static struct { void* port{nullptr}; struct MapItem{ void* ov; Cap::Fiber* fb; }; MapItem* maps{nullptr}; USize cap{0}; USize count{0}; } gIocp;
+    static ResumeFiberFn gResumeFiberFn{nullptr};
 
     Driver gDriver{};
     IDriver* gDriverApi = &gDriver;
@@ -44,7 +45,7 @@ namespace Sys {
                         auto* fb = gIocp.maps[i].fb;
                         gIocp.maps[i] = gIocp.maps[gIocp.count - 1];
                         --gIocp.count;
-                        if (fb) Scheduler::Instance().ResumeFiber(fb);
+                        if (fb && gResumeFiberFn) gResumeFiberFn(fb);
                         break;
                     }
                 }
@@ -61,6 +62,8 @@ namespace Sys {
     ITimerDriver* gTimerApi = &sTimer;
     IIODriver* gIoApi = &sIo;
     ISignalDriver* gSignalApi = &sSignal;
+
+    void SetResumeFiberFn(ResumeFiberFn fn) noexcept { gResumeFiberFn = fn; }
 
     bool Driver::Init() noexcept {
         if (gTimerStore.items) return true;
@@ -130,14 +133,6 @@ namespace Sys {
 
     void Driver::Poll() noexcept { gIoApi->Poll(); }
 
-    void SleepMs(UInt32 ms) noexcept {
-        auto* cf = Scheduler::CurrentFiber();
-        if (!cf) { return; }
-        (void)gDriverApi->AddTimer(cf, ms);
-        cf->state = Cap::FiberState::Waiting;
-        cf->StartSwitch(cf->retCtx);
-        cf->state = Cap::FiberState::Running;
-    }
 
     bool Driver::AttachIocp() noexcept {
         if (gIocp.port) return true;
@@ -165,5 +160,14 @@ namespace Sys {
         cnt += static_cast<UInt32>(gEventStore.count);
         cnt += static_cast<UInt32>(gIocp.count);
         return cnt;
+    }
+
+    void SleepMs(UInt32 ms) noexcept {
+        auto* cf = Scheduler::CurrentFiber();
+        if (!cf) { return; }
+        (void)gDriverApi->AddTimer(cf, ms);
+        cf->state = Cap::FiberState::Waiting;
+        cf->StartSwitch(cf->retCtx);
+        cf->state = Cap::FiberState::Running;
     }
 }

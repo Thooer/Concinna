@@ -5,8 +5,8 @@ import Lang;
 // no Engine.Scene dependency to avoid build cycle
 
 export namespace Engine::Physics {
-    using Entity = Language::UInt32;
-    struct Vec3 { Language::Float32 x{}, y{}, z{}; };
+    using Entity = UInt32;
+    struct Vec3 { Float32 x{}, y{}, z{}; };
     struct AABB { Vec3 min{}, max{}; };
     struct RayQuery { Vec3 origin{}, dir{}; };
     struct Hit { Entity entity{0}; Vec3 pos{}; bool hit{false}; };
@@ -17,6 +17,6 @@ export namespace Engine::Physics {
 
     struct BroadPhaseView {
         const Entity* entities{};
-        Language::USize count{0};
+        USize count{0};
     };
 }

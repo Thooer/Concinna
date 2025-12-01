@@ -1,9 +1,8 @@
-export module Sys:Scheduler;
+export module Sys.Job:Scheduler;
 
 import Lang;
 import Cap.Memory;
 import Prm.System;
-export namespace Prm { struct EventHandle; }
 import Prm.Sync;
 import Prm.Ownership;
 import Cap.Concurrency;
@@ -74,6 +73,8 @@ export namespace Sys {
     export Status SubmitPriority(Cap::Job j, Cap::QoS qos) noexcept;
     export void Suspend(void(*reg)(Cap::Fiber*, void*), void* ctx) noexcept;
 
+    
+
     export template<typename Index, typename Fn>
     Status ParallelFor(Index begin, Index end, Index grain, Fn&& f) noexcept {
         if (end <= begin || grain <= 0) return Ok(StatusDomain::System());
@@ -85,18 +86,15 @@ export namespace Sys {
             Index e = s + grain; if (e > end) e = end;
             using FnPtr = void(*)(Index) noexcept;
             struct RangePack { FnPtr fn; Index s; Index e; };
-            auto& fa = Scheduler::GetFrameAllocator();
-            auto rn = fa.Allocate(sizeof(RangePack), alignof(RangePack));
-            if (!rn.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
-            void* mem = rn.Value().ptr;
+            void* mem = ::operator new(sizeof(RangePack));
+            if (!mem) return Err(StatusDomain::System(), StatusCode::Failed);
             FnPtr fnp = +f;
             auto* pack = new (mem) RangePack{ fnp, s, e };
             Cap::Job j{};
             j.invoke = +[](void* p) noexcept {
                 auto* rp = static_cast<RangePack*>(p);
                 for (Index i = rp->s; i < rp->e; ++i) { rp->fn(i); }
-                auto& fa2 = Scheduler::GetFrameAllocator();
-                fa2.Deallocate(Cap::MemoryBlock{ p, sizeof(RangePack) }, alignof(RangePack));
+                ::operator delete(p);
             };
             j.arg = pack;
             auto st = RunWithCounter(j, c);

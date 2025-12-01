@@ -10,13 +10,29 @@ export namespace Cap {
     struct Transcendental {
         template<int W>
         static inline SIMD::Packet<float, W> Sin(SIMD::Packet<float, W> x) noexcept {
-            auto pi      = SIMD::Set1<W>(3.14159265358979323846f);
-            auto half_pi = SIMD::Set1<W>(1.57079632679489661923f);
+            const float PI      = 3.14159265358979323846f;
+            const float TWO_PI  = 6.28318530717958647692f;
+            const float HALF_PI = 1.57079632679489661923f;
+            auto pi      = SIMD::Set1<W>(PI);
+            auto two_pi  = SIMD::Set1<W>(TWO_PI);
+            auto half_pi = SIMD::Set1<W>(HALF_PI);
+            auto neg_half_pi = SIMD::Set1<W>(-HALF_PI);
+
             auto y = x;
-            auto gt = SIMD::GreaterThan(y, half_pi);
-            y = SIMD::Select(gt, y - pi, y);
-            auto lt = SIMD::Less(y, SIMD::Set1<W>(-1.57079632679489661923f));
-            y = SIMD::Select(lt, y + pi, y);
+            // wrap to [-pi, pi]
+            auto gt_pi = SIMD::GreaterThan(y, pi);
+            y = SIMD::Select(gt_pi, y - two_pi, y);
+            auto lt_npi = SIMD::Less(y, SIMD::Set1<W>(-PI));
+            y = SIMD::Select(lt_npi, y + two_pi, y);
+
+            // reflect to [-pi/2, pi/2] without sign error
+            auto gt_half = SIMD::GreaterThan(y, half_pi);
+            auto lt_half = SIMD::Less(y, neg_half_pi);
+            auto y_reflect_pos = pi - y;    // x in (pi/2, pi] -> y in [0, pi/2)
+            auto y_reflect_neg = SIMD::Set1<W>(-PI) - y;   // x in [-pi, -pi/2) -> y in (-pi/2, 0]
+            y = SIMD::Select(gt_half, y_reflect_pos, y);
+            y = SIMD::Select(lt_half, y_reflect_neg, y);
+
             auto y2 = y * y;
             auto c3 = SIMD::Set1<W>(-0.16666667163372039795f);
             auto c5 = SIMD::Set1<W>(0.00833333109718561172f);
@@ -27,20 +43,40 @@ export namespace Cap {
         }
         template<int W>
         static inline SIMD::Packet<float, W> Cos(SIMD::Packet<float, W> x) noexcept {
-            auto pi      = SIMD::Set1<W>(3.14159265358979323846f);
-            auto half_pi = SIMD::Set1<W>(1.57079632679489661923f);
+            const float PI      = 3.14159265358979323846f;
+            const float TWO_PI  = 6.28318530717958647692f;
+            const float HALF_PI = 1.57079632679489661923f;
+            auto pi      = SIMD::Set1<W>(PI);
+            auto two_pi  = SIMD::Set1<W>(TWO_PI);
+            auto half_pi = SIMD::Set1<W>(HALF_PI);
+            auto neg_half_pi = SIMD::Set1<W>(-HALF_PI);
+
             auto y = x;
-            auto gt = SIMD::GreaterThan(y, half_pi);
-            y = SIMD::Select(gt, y - pi, y);
-            auto lt = SIMD::Less(y, SIMD::Set1<W>(-1.57079632679489661923f));
-            y = SIMD::Select(lt, y + pi, y);
+            // wrap to [-pi, pi]
+            auto gt_pi = SIMD::GreaterThan(y, pi);
+            y = SIMD::Select(gt_pi, y - two_pi, y);
+            auto lt_npi = SIMD::Less(y, SIMD::Set1<W>(-PI));
+            y = SIMD::Select(lt_npi, y + two_pi, y);
+
+            // reflect to [-pi/2, pi/2] and track cosine sign
+            auto gt_half = SIMD::GreaterThan(y, half_pi);
+            auto lt_half = SIMD::Less(y, neg_half_pi);
+            auto y_reflect_pos = pi - y;    // x in (pi/2, pi] -> y in [0, pi/2)
+            auto y_reflect_neg = SIMD::Set1<W>(-PI) - y;   // x in [-pi, -pi/2) -> y in (-pi/2, 0]
+            auto sign = SIMD::Set1<W>(1.0f);
+            sign = SIMD::Select(gt_half, sign * SIMD::Set1<W>(-1.0f), sign);
+            sign = SIMD::Select(lt_half, sign * SIMD::Set1<W>(-1.0f), sign);
+            y = SIMD::Select(gt_half, y_reflect_pos, y);
+            y = SIMD::Select(lt_half, y_reflect_neg, y);
+
             auto y2 = y * y;
             auto c2 = SIMD::Set1<W>(-0.5f);
             auto c4 = SIMD::Set1<W>(0.04166666790843009949f);
             auto c6 = SIMD::Set1<W>(-0.0013888889225190282f);
             auto p  = SIMD::FMA(c6, y2, c4);
             p       = SIMD::FMA(p, y2, c2);
-            return SIMD::FMA(p, y2, SIMD::Set1<W>(1.0f));
+            auto poly = SIMD::FMA(p, y2, SIMD::Set1<W>(1.0f));
+            return poly * sign;
         }
         template<int W>
         static inline SIMD::Packet<float, W> Tan(SIMD::Packet<float, W> x) noexcept {

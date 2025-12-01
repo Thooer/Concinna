@@ -1,6 +1,6 @@
-message(STATUS "Sys.Job.Test CMakeLists starting")
-nova_add_module_from_dirs(Sys.Job.Test
-  INTERFACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Interface
-)
-target_link_libraries(Sys.Job.Test PRIVATE Language Memory Sync Concurrency Sys)
-apply_common_options(Sys.Job.Test)
+message(STATUS "System.Test CMakeLists starting")
+
+API(Sys.Test ${CMAKE_CURRENT_SOURCE_DIR}/Interface LINK Lang;Window;Time;SysRHI)
+Impl(Sys.Test.Default ${CMAKE_CURRENT_SOURCE_DIR}/Backends/Default LINK Lang;Window;Time;SysRHI)
+Build(SysTest TYPE STATIC BACKEND Sys.Test.Default LINK Lang;Window;Time;SysRHI)
+add_dependencies(SysTest SysRHI)

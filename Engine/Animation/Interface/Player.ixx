@@ -16,6 +16,6 @@ export namespace Engine::Animation {
         ClipId m_current{0};
         float m_time{0.0f};
         const JointMatrix* m_pose{nullptr};
-        Language::USize m_poseCount{0};
+        USize m_poseCount{0};
     };
 }

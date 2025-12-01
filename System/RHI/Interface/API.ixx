@@ -1,10 +1,12 @@
 module;
-export module Eng.Renderer:RHI.API;
+export module Sys.RHI:API;
 
 import Lang;
-import :RHI.Types;
+import :Types;
+export import :Types;
 
-export namespace Eng::Renderer::RHI {
+export namespace Sys {
+    export Expect<Device> CreateDevice() noexcept;
     export Expect<Device> CreateDevice(const DeviceCreateInfo& ci) noexcept;
     export Expect<Swapchain> CreateSwapchain(const Device& dev, const SurfaceInfo& si) noexcept;
     export Expect<Queue> GetQueue(const Device& dev, QueueType type) noexcept;

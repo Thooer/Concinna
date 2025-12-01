@@ -1,10 +1,10 @@
-module Sys;
+module Sys.Job;
 import Lang;
 import Cap.Memory;
 import Prm.System;
 import Prm.Time;
 import Prm.Ownership;
-import Prm.Ownership;
+import Prm.Threading;
 import Cap.Concurrency;
 import Tools.Tracy;
 import :Scheduler;
@@ -19,7 +19,7 @@ namespace Sys {
         UInt32 id{0};
         Cap::ChaseLevDeque<Cap::Fiber*> qHigh{};
         Cap::ChaseLevDeque<Cap::Fiber*> qNorm{};
-        void* th{nullptr};
+        Prm::ThreadHandle th;
         void* host{nullptr};
         Scheduler* sched{nullptr};
         Cap::Parker sleep{};
@@ -44,7 +44,6 @@ namespace Sys {
 
 void WorkerStart(void* p) noexcept {
     auto* w = static_cast<Worker*>(p);
-    
     Tools::Tracy::SetThreadName("Worker");
     auto& sch = *w->sched;
         UInt32 idle = 0;
@@ -140,14 +139,14 @@ void WorkerStart(void* p) noexcept {
             if (sch.m_ioPoller.Load(Prm::MemoryOrder::Relaxed) == w->id) { gIoApi->Poll(); }
             ++idle;
             if (idle < w->spinMax) {
-                SleepMs(0);
+                Prm::ThreadYield();
             } else {
                 if (!w->idle.Load(Prm::MemoryOrder::Relaxed)) {
                     bool expected = false;
                     if (w->idle.CompareExchangeStrong(expected, true, Prm::MemoryOrder::AcqRel, Prm::MemoryOrder::Relaxed)) {
                         sch.m_idle.Push(&w->idleNode);
-                    }
-                }
+        }
+    }
                 auto t0 = Prm::Now();
                 w->sleep.Park(sch.NextTimeoutMs());
                 auto t1 = Prm::Now();
@@ -166,6 +165,7 @@ void WorkerStart(void* p) noexcept {
         
     }
 
+    static void ResumeFiberDirect(Cap::Fiber* f) noexcept { Scheduler::Instance().ResumeFiber(f); }
     Status Scheduler::Start(UInt32 workers) noexcept {
         if (m_running.Load(MemoryOrder::Relaxed)) return Ok(StatusDomain::System());
         if (workers == 0) {
@@ -289,17 +289,21 @@ void WorkerStart(void* p) noexcept {
                 Prm::Release(caches);
             }
         }
+        SetResumeFiberFn(&ResumeFiberDirect);
         (void)gDriverApi->Init();
         m_running.Store(true, Prm::MemoryOrder::Release);
         m_ioPoller.Store(workers ? (workers - 1u) : 0u, Prm::MemoryOrder::Relaxed);
-        for (UInt32 i = 0; i < workers; ++i) { WorkerStart(m_workers + i); }
+        for (UInt32 i = 0; i < workers; ++i) {
+            auto rc = Prm::ThreadCreate(&WorkerStart, m_workers + i);
+            if (!rc.IsOk()) return Err(StatusDomain::System(), StatusCode::Failed);
+            m_workers[i].th = rc.Value();
+        }
         return Ok(StatusDomain::System());
     }
 
     Status Scheduler::Stop() noexcept {
         m_running.Store(false, Prm::MemoryOrder::Release);
-        
-        
+        for (UInt32 i = 0; i < m_workerCount; ++i) { (void)Prm::ThreadJoin(m_workers[i].th); }
         for (UInt32 i = 0; i < m_workerCount; ++i) { m_workers[i].~Worker(); }
         if (m_numaMembers) { ::operator delete(m_numaMembers); m_numaMembers = nullptr; }
         if (m_numaOffsets) { ::operator delete(m_numaOffsets); m_numaOffsets = nullptr; }
@@ -457,6 +461,7 @@ void WorkerStart(void* p) noexcept {
         cf->state = Cap::FiberState::Running;
         return Ok(StatusDomain::System());
     }
+
 
     Status AwaitTimeout(UInt32 ms) noexcept { SleepMs(ms); return Ok(StatusDomain::System()); }
     Status Await(void* h) noexcept { return AwaitEvent(h); }

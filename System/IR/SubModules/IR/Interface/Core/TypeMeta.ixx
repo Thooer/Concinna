@@ -68,7 +68,7 @@ export namespace Foundation::IRSystem {
     namespace detail {
         consteval UInt64 FnV1a64(const std::string_view str) noexcept {
             // 使用Language中的FNV-1a哈希实现
-            return Language::FNV1aString(str);
+            return FNV1aString(str);
         }
         template<typename T>
         consteval std::string_view GetTypeSignature() noexcept {

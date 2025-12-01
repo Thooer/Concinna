@@ -1,4 +1,4 @@
-export module Sys:Event;
+export module Sys.Job:Event;
 
 import Lang;
 import Cap.Concurrency;

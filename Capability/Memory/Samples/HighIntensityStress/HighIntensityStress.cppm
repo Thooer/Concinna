@@ -1,6 +1,6 @@
 import Lang;
 import Memory;
-import Prm.Threading:ThreadSync;
+import Prm.Threading;
 import <atomic>;
 import <thread>;
 import <vector>;

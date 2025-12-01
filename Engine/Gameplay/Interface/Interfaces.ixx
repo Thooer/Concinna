@@ -5,7 +5,7 @@ import Lang;
 import Engine.Scene;
 
 export namespace Engine::Gameplay {
-    using ComponentType = Language::UInt32;
+    using ComponentType = UInt32;
     class IComponent {
     public:
         virtual ~IComponent() = default;

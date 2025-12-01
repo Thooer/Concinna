@@ -1,10 +1,10 @@
 module;
-export module Engine.Renderer:Simple;
+export module Sys.RenderGraph:Simple;
 
 import Lang;
 import :Types;
 
-export namespace Engine::Renderer {
+export namespace Sys {
     class SimpleRenderer {
     public:
         bool Submit(const RenderInstance* instances, USize count) noexcept { m_count += count; return true; }

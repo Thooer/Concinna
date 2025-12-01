@@ -1,8 +1,6 @@
 module;
-export module Sys.Job.Test;
+export module Sys.Test;
 
-export import :Core;
-export import :Context;
-export import :Assertions;
-export import :Registration;
-export import :Runner;
+import :Kit;
+
+export import :Kit;

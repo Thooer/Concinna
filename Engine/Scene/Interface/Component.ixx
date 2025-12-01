@@ -6,7 +6,7 @@ import :Types;
 import :World;
 
 export namespace Engine::Scene {
-    inline constexpr Language::UInt32 Component_Transform = static_cast<Language::UInt32>(1u);
+    inline constexpr UInt32 Component_Transform = static_cast<UInt32>(1u);
 
     template<class T>
     bool AddComponent(SceneWorld& w, Entity e) noexcept;

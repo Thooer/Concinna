@@ -159,7 +159,7 @@ Concinna/
 | `Sys.Streaming` | 场景/纹理的流式加载策略管理。 | `Sys.ResourceManager`, `Cap.Streaming` |
 | `Sys.Job` |  | `Cap.Concurrency` |
 | `Sys.Task` | 命令协议、全局任务图调度、帧任务管理、双命令缓冲、任务图管理。 | `Sys.Job`, `Cap.Concurrency` |
-| `Sys.Test` | 单元测试与集成测试框架。 | `Cap.Log`, `Cap.Debug` |
+| `Sys.Test` | 单元和集成测试框架。 | `Cap.Log`, `Cap.Debug` |
 | `Sys.VFS` | 统一路径抽象、包内文件访问、挂载点。 | `Cap.Path`, `Cap.Stream`, `Prm.File` |
 |
 | `Sim.Animation` | 动画曲线数据、骨骼层级定义、混合树数据结构。 | `Sim.Schema` |
@@ -213,8 +213,8 @@ Concinna/
 - **类型/方法**：`PascalCase`，常量`CONSTANT`，局部变量`kCONSTANT`
 - **成员变量**：公开`m_`，私有`t_`，接口`I`，模板`T`
 - **异步接口**：异步`Async`，线程安全`Safe`，非阻塞`Try`
-- **命名空间**：最多一层，如`Prm::`
-- **模块前缀**：和命名空间一致，如`Prm.`
+- **命名空间**：最多一层，如`Prm::xxx`
+- **模块前缀**：和命名空间一致，最多一层，如`Prm.Memory`
 
 ### **5.3 模块导入**
 - **模块化导入**:仅使用 `import <Module>`，禁止 `#include`
@@ -234,8 +234,8 @@ Concinna/
 ### **5.5 严正声明**
 模块导入自己的分区时，只允许 `import :分区名`
 模块导入其他模块的内容时，只允许 `import 其他模块`，禁止 `import 其他模块:分区`
-整个项目的命名空间只有：Prm、Cap、Sys、Hub、Eng、Dev、Edt、Plg、Pjt、Web、Thd，禁止使用其他命名空间！！！
-所有层次，都不是模块,只是目录和命名空间。
+整个项目的命名空间只有：Prm、Cap、Sys、Hub、Sim、Eng、Dev、Edt、Plg、Pjt、Web、Thd，禁止使用其他命名空间！！！
+所有层次，都不是模块,只是目录和命名空间，所以，禁止Sys等模块存在，也禁止Sys等:分区名的存在。（Lang除外）
 ### **5.6 第二次严正声明**
 禁止导入其他模块的分区，禁止使用其他命名空间！！！
 禁止导入其他模块的分区，禁止使用其他命名空间！！！

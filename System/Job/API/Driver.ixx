@@ -1,7 +1,6 @@
-export module Sys:Driver;
+export module Sys.Job:Driver;
 
 import Lang;
-export namespace Prm { struct EventHandle; }
 import Cap.Concurrency;
 
 export namespace Sys {
@@ -58,4 +57,6 @@ export namespace Sys {
     export extern IIODriver* gIoApi;
     export extern ISignalDriver* gSignalApi;
     export void SleepMs(UInt32 ms) noexcept;
+    export using ResumeFiberFn = void(*)(Cap::Fiber*) noexcept;
+    export void SetResumeFiberFn(ResumeFiberFn fn) noexcept;
 }

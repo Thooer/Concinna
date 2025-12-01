@@ -1,11 +1,11 @@
 module;
-export module Engine.Renderer:CommandList;
+export module Sys.RenderGraph:CommandList;
 
 import Lang;
 import :Types;
 import :Simple;
 
-export namespace Engine::Renderer {
+export namespace Sys {
     class CommandList {
     public:
         explicit CommandList(SimpleRenderer* r) noexcept;
