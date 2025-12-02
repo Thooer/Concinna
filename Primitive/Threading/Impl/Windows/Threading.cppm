@@ -1,6 +1,7 @@
-#include <new>
-
-import Prm.Threading;
+module Prm.Threading;
+import Prm.Threading:Types;
+import Prm.Threading:ThreadSync;
+import Prm.Threading:Fiber;
 import Lang.Element;
 import Lang.Flow;
 import Lang.Paradigm;

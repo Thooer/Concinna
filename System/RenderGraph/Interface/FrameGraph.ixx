@@ -1,12 +1,14 @@
+
 module;
 export module Sys.RenderGraph:FrameGraph;
 
 import Lang;
 import Cap.Memory;
-import Sim.Scene;
 import :Types;
 import :CommandList;
 import :Simple;
+
+namespace Sim::Scene { struct SceneView; }
 
 export namespace Sys {
     struct ResourceDesc { USize bytes{0}; UInt32 type{0}; };

@@ -246,8 +246,8 @@ add_library(Cap.Memory INTERFACE)
 target_link_libraries(Cap.Memory INTERFACE Memory SystemMemory Ownership)
 
 # Simulation layer
-if(EXISTS "${CMAKE_SOURCE_DIR}/Sim/Scene")
-  add_subdirectory(Sim/Scene)
+if(EXISTS "${CMAKE_SOURCE_DIR}/Simulaition/Scene")
+  add_subdirectory(Simulation/Scene)
 endif()
 
 # Engine runtime (optional)
