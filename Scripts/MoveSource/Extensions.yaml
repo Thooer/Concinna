@@ -4,3 +4,7 @@
 - .txt
 - .md
 - .asm
+- .model
+- .mesh
+- .lua
+- .wat

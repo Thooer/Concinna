@@ -13,6 +13,7 @@ prm_window = { path = "../../Prm/Window" }
 cap_memory = { path = "../../Cap/Memory" }
 sys_vfs = { path = "../VFS" }
 prm_file = { path = "../../Prm/File" }
+prm_time = { path = "../../Prm/Time" }
 ash = { version = "0.38" }
 bytemuck = "1.14"
 naga = { version = "0.13", features = ["glsl-in", "spv-out"] }

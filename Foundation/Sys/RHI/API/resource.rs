@@ -90,8 +90,8 @@ pub fn perspective(fov_rad: f32, aspect: f32, zn: f32, zf: f32) -> Mat4 {
     Mat4([
         f/aspect, 0.0, 0.0, 0.0,
         0.0, f, 0.0, 0.0,
-        0.0, 0.0, (zf+zn)*nf, -1.0,
-        0.0, 0.0, (2.0*zf*zn)*nf, 0.0
+        0.0, 0.0, (zf+zn)*nf, (2.0*zf*zn)*nf,
+        0.0, 0.0, -1.0, 0.0
     ])
 }
 
@@ -100,10 +100,22 @@ pub fn look_at(eye: [f32;3], center: [f32;3], up: [f32;3]) -> Mat4 {
     let s = norm(cross(f, up));
     let u = cross(s, f);
     Mat4([
-        s[0], u[0], -f[0], 0.0,
-        s[1], u[1], -f[1], 0.0,
-        s[2], u[2], -f[2], 0.0,
-        -dot3(s, eye), -dot3(u, eye), dot3(f, eye), 1.0
+        s[0], s[1], s[2], -dot3(s, eye),
+        u[0], u[1], u[2], -dot3(u, eye),
+        -f[0], -f[1], -f[2], dot3(f, eye),
+        0.0, 0.0, 0.0, 1.0
+    ])
+}
+
+pub fn look_at_vk(eye: [f32;3], center: [f32;3], up: [f32;3]) -> Mat4 {
+    let f = norm(sub3(center, eye));
+    let s = norm(cross(up, f));
+    let u = cross(f, s);
+    Mat4([
+        s[0], s[1], s[2], -dot3(s, eye),
+        u[0], u[1], u[2], -dot3(u, eye),
+        f[0], f[1], f[2], -dot3(f, eye),
+        0.0, 0.0, 0.0, 1.0
     ])
 }
 
@@ -117,11 +129,22 @@ pub fn mul(a: Mat4, b: Mat4) -> Mat4 {
 
 fn transform_point(m: Mat4, p: [f32;3]) -> [f32;4] {
     let x = p[0]; let y = p[1]; let z = p[2];
-    let r0 = m.0[0]*x + m.0[4]*y + m.0[8]*z + m.0[12];
-    let r1 = m.0[1]*x + m.0[5]*y + m.0[9]*z + m.0[13];
-    let r2 = m.0[2]*x + m.0[6]*y + m.0[10]*z + m.0[14];
-    let r3 = m.0[3]*x + m.0[7]*y + m.0[11]*z + m.0[15];
+    let r0 = m.0[0]*x + m.0[1]*y + m.0[2]*z + m.0[3];
+    let r1 = m.0[4]*x + m.0[5]*y + m.0[6]*z + m.0[7];
+    let r2 = m.0[8]*x + m.0[9]*y + m.0[10]*z + m.0[11];
+    let r3 = m.0[12]*x + m.0[13]*y + m.0[14]*z + m.0[15];
     [r0,r1,r2,r3]
+}
+
+pub fn perspective_vk(fov_rad: f32, aspect: f32, zn: f32, zf: f32) -> Mat4 {
+    let f = 1.0 / (0.5 * fov_rad).tan();
+    let nf = 1.0 / (zf - zn);
+    Mat4([
+        f/aspect, 0.0, 0.0, 0.0,
+        0.0, f, 0.0, 0.0,
+        0.0, 0.0, zf*nf, -zn*zf*nf,
+        0.0, 0.0, 1.0, 0.0
+    ])
 }
 
 pub fn raster_cubes_rgba(width: u32, height: u32, model: &Model, angle_rad: f32) -> Vec<u8> {
@@ -132,8 +155,8 @@ pub fn raster_cubes_rgba(width: u32, height: u32, model: &Model, angle_rad: f32)
     let r = 2.2f32; let eye = [angle_rad.sin()*r, 0.8f32, angle_rad.cos()*r];
     let view = look_at(eye, [0.0,0.0,0.0], [0.0,1.0,0.0]);
     let proj = perspective(60.0f32.to_radians(), width as f32 / height as f32, 0.1, 10.0);
-    let t_left = Mat4([1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, -0.6,0.0,0.0,1.0]);
-    let t_right = Mat4([1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.6,0.0,0.0,1.0]);
+    let t_left = Mat4([1.0,0.0,0.0,-0.6, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0]);
+    let t_right = Mat4([1.0,0.0,0.0,0.6, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0]);
     let vp = mul(proj, view);
     let mats = [mul(vp, t_left), mul(vp, t_right)];
     let colors = [[64u8,192u8,64u8],[64u8,64u8,192u8]];

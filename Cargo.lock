@@ -1282,6 +1282,7 @@ dependencies = [
  "cap_memory",
  "naga",
  "prm_file",
+ "prm_time",
  "prm_window",
  "prm_wsi",
  "sys_vfs",

@@ -25,37 +25,37 @@ impl Device {
 
     pub fn upload_model(&mut self, m: &Model) -> Result<(), RhiError> {
         match self.kind {
-            BackendKind::Vulkan => crate::backend::vulkan::vk_renderer::vk_ctx_upload_model(self.vk(), m),
+            BackendKind::Vulkan => crate::backend::vulkan::vk_model::vk_ctx_upload_model(self.vk(), m),
             BackendKind::Cpu => crate::backend::cpu::cpu_ctx_upload_model(self.cpu(), m),
         }
     }
     pub fn update_cubes(&mut self, m: &Model, angle: f32, width: u32, height: u32) -> Result<(), RhiError> {
         match self.kind {
-            BackendKind::Vulkan => crate::backend::vulkan::vk_renderer::vk_ctx_update_cubes(self.vk(), m, angle, width, height),
+            BackendKind::Vulkan => crate::backend::vulkan::vk_model::vk_ctx_update_cubes(self.vk(), m, angle, width, height),
             BackendKind::Cpu => crate::backend::cpu::cpu_ctx_update_cubes(self.cpu(), m, angle, width, height),
         }
     }
     pub fn begin_frame(&mut self) -> Result<(), RhiError> {
         match self.kind {
-            BackendKind::Vulkan => crate::backend::vulkan::vk_renderer::vk_ctx_begin_frame(self.vk()),
+            BackendKind::Vulkan => crate::backend::vulkan::vk_passes::vk_ctx_begin_frame(self.vk()),
             BackendKind::Cpu => crate::backend::cpu::cpu_ctx_begin_frame(self.cpu()),
         }
     }
     pub fn depth_prepass(&mut self) -> Result<(), RhiError> {
         match self.kind {
-            BackendKind::Vulkan => crate::backend::vulkan::vk_renderer::vk_ctx_depth_prepass(self.vk()),
+            BackendKind::Vulkan => crate::backend::vulkan::vk_passes::vk_ctx_depth_prepass(self.vk()),
             BackendKind::Cpu => crate::backend::cpu::cpu_ctx_depth_prepass(self.cpu()),
         }
     }
     pub fn color_pass(&mut self) -> Result<(), RhiError> {
         match self.kind {
-            BackendKind::Vulkan => crate::backend::vulkan::vk_renderer::vk_ctx_color_pass(self.vk()),
+            BackendKind::Vulkan => crate::backend::vulkan::vk_passes::vk_ctx_color_pass(self.vk()),
             BackendKind::Cpu => crate::backend::cpu::cpu_ctx_color_pass(self.cpu()),
         }
     }
     pub fn present(&mut self) -> Result<(), RhiError> {
         match self.kind {
-            BackendKind::Vulkan => crate::backend::vulkan::vk_renderer::vk_ctx_present_and_update_queries(self.vk()),
+            BackendKind::Vulkan => crate::backend::vulkan::vk_passes::vk_ctx_present_and_update_queries(self.vk()),
             BackendKind::Cpu => crate::backend::cpu::cpu_ctx_present(self.cpu()),
         }
     }

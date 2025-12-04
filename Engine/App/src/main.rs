@@ -1,7 +1,9 @@
 use prm_file::{open, close, read, write, size, stdout_handle, FileOpenMode, FileShareMode};
 use prm_io::{path_exists, path_is_directory, path_create_directory};
 use prm_time::{sleep_ms, now, delta_seconds};
-use prm_window::{create, show, process_one_message, WindowDesc};
+use prm_window::{create, show, process_one_message, destroy, set_raw_event_callback, WindowDesc};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::ffi::c_void;
 use cap_path::{join, to_windows};
 use cap_memory::{SystemMemoryResource, Allocator};
 use sys_vfs::Vfs;
@@ -45,9 +47,10 @@ fn host_print(s: &str) { let sh = stdout_handle(); let _ = write(sh, s.as_bytes(
 
 fn main() {
     let cache_path = "Engine/App/cache/last_project.txt";
-    let default_project = "c:\\Users\\25744\\Desktop\\Concinna\\Projects\\Test";
+    let cwd_str = std::env::current_dir().unwrap().to_str().unwrap().to_string();
+    let default_project = format!("{}\\..\\..\\Projects\\Test", cwd_str);
     let proj = read_text(cache_path).unwrap_or_else(|| {
-        let _ = write_text(cache_path, default_project);
+        let _ = write_text(cache_path, &default_project);
         default_project.to_string()
     });
     let project_root = proj;
@@ -71,10 +74,16 @@ fn main() {
     let alloc = Allocator::new(&mut sys_res);
     let mut vfs = Vfs::with_capacity(alloc, 8).unwrap();
     let _ = vfs.mount("project", &project_root);
-    let _ = vfs.mount("engine", "c:/Users/25744/Desktop/Concinna/Engine");
+    let engine_root = format!("{}\\..\\..\\Engine", cwd_str);
+    let _ = vfs.mount("engine", &engine_root);
 
     let desc = WindowDesc::default();
     if let Ok(h) = create(&desc, None) {
+        static QUIT: AtomicBool = AtomicBool::new(false);
+        fn raw_cb(_hwnd: *mut c_void, msg: u32, _wparam: usize, _lparam: isize) {
+            if msg == 0x0010 || msg == 0x0002 || msg == 0x0012 { QUIT.store(true, Ordering::SeqCst); }
+        }
+        set_raw_event_callback(Some(raw_cb));
         let _ = show(h);
         let lua_ok = run_lua_file(&vfs, "project:scripts/hello.lua");
         let wat_ok = run_wat_file(&vfs, "project:scripts/hello.wat");
@@ -86,6 +95,7 @@ fn main() {
         let t0 = now();
         loop {
             let _ = process_one_message(Some(h));
+            if QUIT.load(Ordering::SeqCst) { break; }
             if let Some(path) = lua_runtime_exec_frame(&rt, &vfs, "project:scripts/frame.lua") {
                 if let Some(m) = sys_rhi::load_model_vfs(&vfs, &path) {
                     if let Some(ref mut ctx) = dev {
@@ -112,5 +122,6 @@ fn main() {
             }
             sleep_ms(16);
         }
+        destroy(h);
     }
 }
