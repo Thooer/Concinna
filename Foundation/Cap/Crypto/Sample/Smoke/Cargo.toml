@@ -1,0 +1,13 @@
+[package]
+name = "cap_crypto_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_crypto = { path = "../.." }
+
+[[bin]]
+name = "cap_crypto_smoke"
+path = "main.rs"
+
+[workspace]

@@ -1,0 +1,14 @@
+[package]
+name = "cap_algorithms_bench"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_algorithms = { path = "../.." }
+cap_containers = { path = "../../../Containers" }
+cap_memory = { path = "../../../Memory" }
+prm_time = { path = "../../../../Prm/Time" }
+
+[[bin]]
+name = "cap_algorithms_bench"
+path = "main.rs"

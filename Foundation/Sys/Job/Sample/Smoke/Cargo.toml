@@ -1,0 +1,13 @@
+[package]
+name = "sys_job_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sys_job = { path = "../.." }
+cap_memory = { path = "../../../../Cap/Memory" }
+cap_concurrency = { path = "../../../../Cap/Concurrency" }
+
+[[bin]]
+name = "sys_job_smoke"
+path = "main.rs"

@@ -1,0 +1,26 @@
+[workspace]
+members = [
+    "Foundation/Derive",
+    "Foundation/Prm/Threading",
+    "Foundation/Prm/Time",
+    "Foundation/Cap/Memory",
+    "Foundation/Cap/Containers",
+    "Foundation/Cap/Concurrency",
+    "Foundation/Cap/IO",
+    "Foundation/Cap/Algorithms",
+    "Foundation/Cap/Path",
+    "Foundation/Cap/Stream",
+    "Foundation/Sys/Job",
+    "Foundation/Sys/Task",
+    "Foundation/Sys/VFS",
+    "Foundation/Sys/Scripting",
+    "Foundation/Sys/RHI",
+    "Foundation/Sys/RenderGraph",
+    "Engine/Renderer",
+    "Foundation/Sys/Resource",
+    "Foundation/Sys/Task/Sample/Smoke",
+    "Foundation/Sys/Job/Sample/Smoke",
+    "Foundation/Cap/Algorithms/Sample/Bench",
+    "Engine/App",
+]
+resolver = "2"

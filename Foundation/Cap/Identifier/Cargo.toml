@@ -1,0 +1,13 @@
+[package]
+name = "cap_identifier"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cap_identifier"
+path = "API/lib.rs"
+
+[dependencies]
+cap_random = { path = "../Random" }
+cap_crypto = { path = "../Crypto" }
+

@@ -1,0 +1,13 @@
+[package]
+name = "cap_stream"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cap_stream"
+path = "API/lib.rs"
+
+[dependencies]
+prm_file = { path = "../../Prm/File" }
+cap_memory = { path = "../Memory" }
+

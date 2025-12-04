@@ -1,0 +1,9 @@
+[package]
+name = "prm_debug"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "prm_debug"
+path = "API/Ops.rs"
+

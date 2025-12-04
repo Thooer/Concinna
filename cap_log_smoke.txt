@@ -1,0 +1,2 @@
+922337203685 INFO hello log
+922337203685 DEBUG debug details

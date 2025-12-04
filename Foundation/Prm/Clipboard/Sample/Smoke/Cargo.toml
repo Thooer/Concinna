@@ -1,0 +1,12 @@
+[package]
+name = "prm_clipboard_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prm_clipboard = { path = "../.." }
+
+[[bin]]
+name = "prm_clipboard_smoke"
+path = "main.rs"
+

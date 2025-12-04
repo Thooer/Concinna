@@ -1,0 +1,8 @@
+[package]
+name = "cap_memory"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cap_memory"
+path = "API/Ops.rs"

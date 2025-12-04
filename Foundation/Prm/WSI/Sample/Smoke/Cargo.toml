@@ -1,0 +1,12 @@
+[package]
+name = "prm_wsi_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prm_wsi = { path = "../.." }
+prm_window = { path = "../../../Window" }
+
+[[bin]]
+name = "prm_wsi_smoke"
+path = "main.rs"

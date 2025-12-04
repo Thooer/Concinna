@@ -1,0 +1,16 @@
+[package]
+name = "engine_app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prm_file = { path = "../../Foundation/Prm/File" }
+prm_io = { path = "../../Foundation/Prm/IO" }
+prm_time = { path = "../../Foundation/Prm/Time" }
+prm_window = { path = "../../Foundation/Prm/Window" }
+cap_path = { path = "../../Foundation/Cap/Path" }
+cap_memory = { path = "../../Foundation/Cap/Memory" }
+sys_vfs = { path = "../../Foundation/Sys/VFS" }
+sys_scripting = { path = "../../Foundation/Sys/Scripting" }
+sys_rhi = { path = "../../Foundation/Sys/RHI" }
+sys_rendergraph = { path = "../../Foundation/Sys/RenderGraph" }

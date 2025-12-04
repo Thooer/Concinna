@@ -1,0 +1,34 @@
+[workspace]
+members = [
+  "Time",
+  "Clipboard",
+  "System",
+  "Window",
+  "Sync",
+  "Sync/Sample/Smoke",
+  "Threading",
+  "Threading/Sample/Smoke",
+  "IO",
+  "IO/Sample/Smoke",
+  "Socket",
+  "Socket/Sample/Smoke",
+  "Memory",
+  "Memory/Sample/Smoke"
+  ,"Clipboard/Sample/Smoke",
+  "Window/Sample/Smoke"
+  ,"DynamicLibrary",
+  "DynamicLibrary/Sample/Smoke"
+  ,"Debug",
+  "Debug/Sample/Smoke"
+  ,"HID"
+  ,"HID/Sample/Smoke"
+  ,"File"
+  ,"File/Sample/Smoke"
+  ,"Audio"
+  ,"Audio/Sample/Smoke"
+  ,"WSI"
+  ,"WSI/Sample/Smoke"
+  ,"SIMD"
+  ,"SIMD/Sample/Smoke"
+]
+resolver = "2"

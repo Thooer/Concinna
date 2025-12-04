@@ -1,9 +1,0 @@
-export module Foundation.IRSystem:Execution;
-export import Foundation.IRSystem:Execution.Interpreter;
-export import Foundation.IRSystem:Execution.JIT;
-export import Foundation.IRSystem:Execution.Optimizer.PassManager;
-export import Foundation.IRSystem:Execution.Optimizer.SimplifyBranchCondConst;
-export import Foundation.IRSystem:Execution.Optimizer.ConstantPropagation;
-export import Foundation.IRSystem:Execution.Validation.ValidateReport;
-export import Foundation.IRSystem:Execution.Validator.Validator;
-export import Foundation.IRSystem:Execution.CategoryRuntime;

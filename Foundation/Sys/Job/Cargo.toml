@@ -1,0 +1,17 @@
+[package]
+name = "sys_job"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sys_job"
+path = "API/lib.rs"
+
+[dependencies]
+cap_memory = { path = "../../Cap/Memory" }
+cap_containers = { path = "../../Cap/Containers" }
+cap_concurrency = { path = "../../Cap/Concurrency" }
+cap_io = { path = "../../Cap/IO" }
+prm_threading = { path = "../../Prm/Threading" }
+prm_time = { path = "../../Prm/Time" }
+heapless = "0.8"

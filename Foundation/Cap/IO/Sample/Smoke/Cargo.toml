@@ -1,0 +1,16 @@
+[package]
+name = "cap_io_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+cap_io = { path = "../.." }
+prm_file = { path = "../../../../Prm/File" }
+prm_time = { path = "../../../../Prm/Time" }
+cap_path = { path = "../../../Path" }
+
+[[bin]]
+name = "cap_io_smoke"
+path = "main.rs"

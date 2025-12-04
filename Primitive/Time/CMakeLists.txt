@@ -1,6 +1,0 @@
-API(Primitive.Time ${CMAKE_CURRENT_SOURCE_DIR}/API LINK Element;Flow;Semantics;Paradigm;Text)
-Impl(Primitive.Time.Windows ${CMAKE_CURRENT_SOURCE_DIR}/Impl)
-Impl(Primitive.Time.Noop ${CMAKE_CURRENT_SOURCE_DIR}/Impl)
-Build(Time TYPE STATIC BACKEND Primitive.Time.Windows)
-Sample(Time.StopwatchDemo ${CMAKE_CURRENT_SOURCE_DIR}/Samples/StopwatchDemo OPTION BUILD_TIME_STOPWATCH LINK "Time")
-Sample(Time.PrecisionBench ${CMAKE_CURRENT_SOURCE_DIR}/Samples/PrecisionBench OPTION BUILD_TIME_PRECISION LINK "Time")

@@ -1,0 +1,16 @@
+[package]
+name = "cap_log_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_log = { path = "../.." }
+cap_path = { path = "../../../Path" }
+cap_stream = { path = "../../../Stream" }
+prm_time = { path = "../../../../Prm/Time" }
+
+[[bin]]
+name = "cap_log_smoke"
+path = "main.rs"
+
+[workspace]

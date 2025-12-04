@@ -1,0 +1,7 @@
+assets
+scripts
+config
+cache
+build
+logs
+tmp

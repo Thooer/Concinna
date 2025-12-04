@@ -1,0 +1,14 @@
+[package]
+name = "eng_renderer"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "eng_renderer"
+path = "API/lib.rs"
+
+[dependencies]
+sys_rhi = { path = "../../Foundation/Sys/RHI" }
+prm_window = { path = "../../Foundation/Prm/Window" }
+prm_time = { path = "../../Foundation/Prm/Time" }
+

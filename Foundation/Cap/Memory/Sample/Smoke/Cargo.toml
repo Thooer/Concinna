@@ -1,0 +1,11 @@
+[package]
+name = "cap_memory_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cap_memory_smoke"
+path = "main.rs"
+
+[dependencies]
+cap_memory = { path = "../../" }

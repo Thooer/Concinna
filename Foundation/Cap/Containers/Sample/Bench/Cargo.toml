@@ -1,0 +1,14 @@
+[package]
+name = "cap_containers_bench"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_containers = { path = "../.." }
+cap_memory = { path = "../../../Memory" }
+prm_simd = { path = "../../../../Prm/SIMD" }
+lang_derive = { path = "../../../../Derive" }
+
+[[bin]]
+name = "cap_containers_bench"
+path = "main.rs"

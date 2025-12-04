@@ -1,0 +1,13 @@
+[package]
+name = "cap_containers_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_containers = { path = "../.." }
+cap_memory = { path = "../../../Memory" }
+prm_threading = { path = "../../../../Prm/Threading" }
+
+[[bin]]
+name = "cap_containers_smoke"
+path = "main.rs"

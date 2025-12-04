@@ -1,0 +1,14 @@
+[package]
+name = "cap_algorithms"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cap_algorithms"
+path = "API/lib.rs"
+
+[dependencies]
+cap_memory = { path = "../Memory" }
+cap_containers = { path = "../Containers" }
+prm_time = { path = "../../Prm/Time" }
+cap_math = { path = "../Math" }

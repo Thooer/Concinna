@@ -1,0 +1,11 @@
+[package]
+name = "cap_math"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cap_math"
+path = "API/Ops.rs"
+
+[dependencies]
+prm_simd = { path = "../../Prm/SIMD" }

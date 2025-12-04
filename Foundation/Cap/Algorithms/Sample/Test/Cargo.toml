@@ -1,0 +1,16 @@
+[package]
+name = "cap_algorithms_test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_algorithms = { path = "../.." }
+cap_memory = { path = "../../../Memory" }
+cap_containers = { path = "../../../Containers" }
+cap_math = { path = "../../../Math" }
+
+[[bin]]
+name = "cap_algorithms_test"
+path = "main.rs"
+
+[workspace]

@@ -1,0 +1,12 @@
+[package]
+name = "prm_window_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prm_window = { path = "../.." }
+
+[[bin]]
+name = "prm_window_smoke"
+path = "main.rs"
+

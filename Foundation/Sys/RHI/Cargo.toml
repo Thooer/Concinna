@@ -1,0 +1,19 @@
+[package]
+name = "sys_rhi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sys_rhi"
+path = "API/lib.rs"
+
+[dependencies]
+prm_wsi = { path = "../../Prm/WSI" }
+prm_window = { path = "../../Prm/Window" }
+cap_memory = { path = "../../Cap/Memory" }
+sys_vfs = { path = "../VFS" }
+prm_file = { path = "../../Prm/File" }
+ash = { version = "0.38" }
+bytemuck = "1.14"
+naga = { version = "0.13", features = ["glsl-in", "spv-out"] }
+

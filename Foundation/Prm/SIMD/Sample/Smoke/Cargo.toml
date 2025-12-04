@@ -1,0 +1,11 @@
+[package]
+name = "prm_simd_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prm_simd = { path = "../.." }
+
+[[bin]]
+name = "prm_simd_smoke"
+path = "main.rs"

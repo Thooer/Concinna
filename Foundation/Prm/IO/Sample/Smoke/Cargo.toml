@@ -1,0 +1,12 @@
+[package]
+name = "prm_io_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prm_io = { path = "../.." }
+
+[[bin]]
+name = "prm_io_smoke"
+path = "main.rs"
+

@@ -1,0 +1,11 @@
+[package]
+name = "cap_containers"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cap_containers"
+path = "API/lib.rs"
+
+[dependencies]
+cap_memory = { path = "../Memory" }

@@ -1,0 +1,13 @@
+[package]
+name = "sys_task_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sys_task = { path = "../.." }
+sys_job = { path = "../../../Job" }
+cap_memory = { path = "../../../../Cap/Memory" }
+
+[[bin]]
+name = "sys_task_smoke"
+path = "main.rs"

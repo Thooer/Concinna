@@ -1,0 +1,12 @@
+[package]
+name = "prm_audio_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prm_audio = { path = "../.." }
+
+[[bin]]
+name = "prm_audio_smoke"
+path = "main.rs"
+

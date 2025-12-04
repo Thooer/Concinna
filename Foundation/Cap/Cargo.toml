@@ -1,0 +1,32 @@
+[workspace]
+members = [
+  "Math",
+  "Math/Sample/Smoke",
+  "Memory",
+  "Memory/Sample/Smoke"
+  ,"Containers"
+  ,"Containers/Sample/Smoke"
+  ,"Containers/Sample/Bench"
+  ,"Concurrency"
+  ,"Concurrency/Sample/Smoke"
+  ,"Algorithms"
+  ,"Algorithms/Sample/Bench"
+  ,"Path"
+  ,"Stream"
+  ,"IO"
+  ,"Log"
+  ,"Log/Sample/Smoke"
+  ,"Crypto"
+  ,"Crypto/Sample/Smoke"
+  ,"Random"
+  ,"Random/Sample/Smoke"
+  ,"Identifier"
+  ,"Identifier/Sample/Smoke"
+  ,"Serialization"
+  ,"Serialization/Sample/Smoke"
+  ,"Reflection"
+  ,"Reflection/Sample/Smoke"
+  ,"Config"
+  ,"Config/Sample/Smoke"
+]
+resolver = "2"

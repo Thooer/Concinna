@@ -1,18 +1,12 @@
 # 文件夹范围配置
 .trae:
   - rules
-Language:
-Primitive:
-Capability:
-System:
-Egnine:
-Simulation:
-Dev:
-Editor:
+Foundation:
+Engine:
 Projects:
   # - Random
   # - Crypto
-  - Math
+  # - Math
 # System:
 #   - Job
 #   - Task

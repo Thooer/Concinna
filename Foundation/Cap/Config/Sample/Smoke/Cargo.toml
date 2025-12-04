@@ -1,0 +1,15 @@
+[package]
+name = "cap_config_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_config = { path = "../.." }
+cap_stream = { path = "../../../Stream" }
+cap_path = { path = "../../../Path" }
+
+[[bin]]
+name = "cap_config_smoke"
+path = "main.rs"
+
+[workspace]

@@ -1,8 +1,6 @@
 # 文件后缀配置
-- .ixx
-- .cppm
+- .toml
+- .rs
 - .txt
 - .md
 - .asm
-- .cpp
-- .hpp

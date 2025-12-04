@@ -1,0 +1,13 @@
+[package]
+name = "cap_concurrency_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_concurrency = { path = "../../" }
+cap_memory = { path = "../../../Memory" }
+prm_threading = { path = "../../../../Prm/Threading" }
+
+[[bin]]
+name = "cap_concurrency_smoke"
+path = "main.rs"

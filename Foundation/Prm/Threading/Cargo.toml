@@ -1,0 +1,8 @@
+[package]
+name = "prm_threading"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "prm_threading"
+path = "API/lib.rs"

@@ -1,5 +1,0 @@
-API(Sys.Input ${CMAKE_CURRENT_SOURCE_DIR}/API LINK Lang;Element;Flow)
-Build(SysInput TYPE STATIC)
-target_link_libraries(SysInput PUBLIC HID)
-add_dependencies(SysInput Window)
-target_link_libraries(SysInput PUBLIC Window)

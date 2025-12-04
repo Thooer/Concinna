@@ -1,0 +1,12 @@
+[package]
+name = "cap_io"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cap_io"
+path = "API/lib.rs"
+
+[dependencies]
+prm_file = { path = "../../Prm/File" }
+prm_threading = { path = "../../Prm/Threading" }

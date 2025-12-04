@@ -1,0 +1,12 @@
+[package]
+name = "cap_math_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cap_math_smoke"
+path = "main.rs"
+
+[dependencies]
+cap_math = { path = "../../" }
+prm_simd = { path = "C:/Users/25744/Desktop/Concinna/Foundation/Prm/SIMD" }

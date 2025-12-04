@@ -1,0 +1,9 @@
+[package]
+name = "prm_clipboard"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "prm_clipboard"
+path = "API/Clipboard.rs"
+

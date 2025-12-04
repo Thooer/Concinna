@@ -1,0 +1,8 @@
+[package]
+name = "prm_simd"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "prm_simd"
+path = "API/Ops.rs"

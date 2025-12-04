@@ -1,0 +1,13 @@
+[package]
+name = "cap_concurrency"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "cap_concurrency"
+path = "API/lib.rs"
+
+[dependencies]
+cap_memory = { path = "../Memory" }
+cap_containers = { path = "../Containers" }
+prm_threading = { path = "../../Prm/Threading" }

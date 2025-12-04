@@ -1,0 +1,13 @@
+[package]
+name = "cap_reflection_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cap_reflection = { path = "../.." }
+
+[[bin]]
+name = "cap_reflection_smoke"
+path = "main.rs"
+
+[workspace]
