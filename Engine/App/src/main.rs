@@ -93,16 +93,25 @@ fn main() {
         let mut dev = Device::new(h, desc.width as u32, desc.height as u32).ok();
         if dev.is_some() { host_print("[RHI] 初始化成功"); } else { host_print("[RHI] 初始化失败"); }
         let t0 = now();
+        let mut last_path: Option<String> = None;
+        let mut cached_model: Option<sys_rhi::Model> = None;
         loop {
             let _ = process_one_message(Some(h));
             if QUIT.load(Ordering::SeqCst) { break; }
             if let Some(path) = lua_runtime_exec_frame(&rt, &vfs, "project:scripts/frame.lua") {
-                if let Some(m) = sys_rhi::load_model_vfs(&vfs, &path) {
-                    if let Some(ref mut ctx) = dev {
-                        let _ = ctx.upload_model(&m);
+                let need_reload = match &last_path { Some(p) => p != &path, None => true };
+                if need_reload {
+                    if let Some(m) = sys_rhi::load_model_vfs(&vfs, &path) {
+                        cached_model = Some(m);
+                        last_path = Some(path.clone());
+                        if let Some(ref mut ctx) = dev { let _ = ctx.upload_model(cached_model.as_ref().unwrap()); }
+                    }
+                }
+                if let Some(ref mut ctx) = dev {
+                    if let Some(ref m) = cached_model {
                         let t = now();
                         let angle = (delta_seconds(t0, t) as f32) * 0.8;
-                        let _ = ctx.update_cubes(&m, angle, desc.width as u32, desc.height as u32);
+                        let _ = ctx.update_cubes(m, angle, desc.width as u32, desc.height as u32);
                         let mut fg = FrameGraph::new();
                         fg.add_pass("DepthPrePass");
                         fg.add_pass("ColorPass");

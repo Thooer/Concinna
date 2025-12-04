@@ -28,7 +28,10 @@ pub fn impl_now_ns() -> i64 {
     let mut c: i64 = 0;
     unsafe { QueryPerformanceCounter(&mut c as *mut i64); }
     let f = qpf();
-    c.saturating_mul(1_000_000_000).saturating_div(f)
+    let ticks = c as u128;
+    let freq = f as u128;
+    let ns = ticks.saturating_mul(1_000_000_000u128).saturating_div(freq);
+    if ns > i64::MAX as u128 { i64::MAX } else { ns as i64 }
 }
 
 pub fn impl_sleep_ms(ms: u32) {
