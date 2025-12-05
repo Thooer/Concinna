@@ -1,4 +1,5 @@
 use cap_memory::{Allocator, MemoryBlock, MemoryError};
+use core::ops::{Deref, DerefMut};
 
 const SSO_CAP: usize = 24;
 
@@ -23,6 +24,9 @@ impl<'a> CapString<'a> {
             Repr::Inline { buf, len } => &buf[..*len],
             Repr::Heap { ptr, len, .. } => unsafe { core::slice::from_raw_parts(*ptr, *len) },
         }
+    }
+    pub fn as_str(&self) -> &str {
+        unsafe { core::str::from_utf8_unchecked(self.as_bytes()) }
     }
     pub fn push_str(&mut self, s: &str) -> Result<(), MemoryError> {
         match &mut self.repr {
@@ -67,5 +71,22 @@ impl<'a> CapString<'a> {
 impl<'a> Drop for CapString<'a> {
     fn drop(&mut self) {
         if let Repr::Heap { blk, .. } = self.repr { if !blk.is_empty() { self.alloc.free(blk, 1); } }
+    }
+}
+
+impl<'a> Deref for CapString<'a> {
+    type Target = str;
+    fn deref(&self) -> &Self::Target { self.as_str() }
+}
+
+impl<'a> core::fmt::Display for CapString<'a> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl<'a> core::fmt::Debug for CapString<'a> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:?}", self.as_str())
     }
 }

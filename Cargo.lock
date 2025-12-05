@@ -464,12 +464,20 @@ dependencies = [
 name = "engine_app"
 version = "0.1.0"
 dependencies = [
+ "cap_containers",
+ "cap_math",
  "cap_memory",
  "cap_path",
+ "mlua",
  "prm_file",
  "prm_io",
  "prm_time",
  "prm_window",
+ "sim_component",
+ "sim_scene",
+ "sim_schema",
+ "sys_ir",
+ "sys_memory",
  "sys_rendergraph",
  "sys_rhi",
  "sys_scripting",
@@ -1193,6 +1201,52 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
+name = "sim_component"
+version = "0.1.0"
+dependencies = [
+ "cap_containers",
+ "cap_math",
+ "cap_memory",
+ "lang_derive",
+]
+
+[[package]]
+name = "sim_component_smoke"
+version = "0.1.0"
+dependencies = [
+ "cap_containers",
+ "cap_math",
+ "cap_memory",
+ "sim_component",
+]
+
+[[package]]
+name = "sim_scene"
+version = "0.1.0"
+dependencies = [
+ "cap_containers",
+ "cap_math",
+ "cap_memory",
+ "sim_component",
+ "sim_schema",
+ "sys_ir",
+]
+
+[[package]]
+name = "sim_scene_smoke"
+version = "0.1.0"
+dependencies = [
+ "cap_math",
+ "cap_memory",
+ "sim_scene",
+ "sim_schema",
+]
+
+[[package]]
+name = "sim_schema"
+version = "0.1.0"
+
+[[package]]
 name = "slice-group-by"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1238,6 +1292,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "sys_ir"
+version = "0.1.0"
+
+[[package]]
 name = "sys_job"
 version = "0.1.0"
 dependencies = [
@@ -1260,10 +1318,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "sys_memory"
+version = "0.1.0"
+dependencies = [
+ "cap_memory",
+]
+
+[[package]]
 name = "sys_rendergraph"
 version = "0.1.0"
 dependencies = [
  "prm_file",
+ "sys_rhi",
 ]
 
 [[package]]
@@ -1294,6 +1360,7 @@ version = "0.1.0"
 dependencies = [
  "mlua",
  "prm_file",
+ "sys_ir",
  "sys_vfs",
  "wasmtime",
  "wat",

@@ -35,6 +35,9 @@ pub struct VkCtx {
     pub pipeline_color_left: vk::Pipeline,
     pub pipeline_color_right: vk::Pipeline,
     pub pipeline_depth: vk::Pipeline,
+    pub glsl_vertex: Option<String>,
+    pub glsl_frag_left: Option<String>,
+    pub glsl_frag_right: Option<String>,
     pub framebuffers: Vec<vk::Framebuffer>,
     pub cmd_pool: vk::CommandPool,
     pub cmd: vk::CommandBuffer,
@@ -130,9 +133,11 @@ unsafe fn recreate_pipelines(ctx: &mut VkCtx) -> Result<(), RhiError> {
     if ctx.pipeline_layout != vk::PipelineLayout::null() { d.destroy_pipeline_layout(ctx.pipeline_layout, None); }
     let plci = vk::PipelineLayoutCreateInfo::default();
     ctx.pipeline_layout = d.create_pipeline_layout(&plci, None).map_err(|_| RhiError::Failed)?;
-    let vsrc = "#version 450\nlayout(location=0) in vec4 in_pos;\nvoid main(){ gl_Position = in_pos; }";
-    let fsrc_left = "#version 450\nlayout(location=0) out vec4 out_color;\nvoid main(){ out_color = vec4(0.25,0.75,0.25,1.0); }";
-    let fsrc_right = "#version 450\nlayout(location=0) out vec4 out_color;\nvoid main(){ out_color = vec4(0.25,0.25,0.75,1.0); }";
+    
+    if ctx.glsl_vertex.is_none() { return Ok(()); }
+    let vsrc = ctx.glsl_vertex.as_ref().unwrap();
+    let fsrc_left = ctx.glsl_frag_left.as_ref().unwrap();
+    let fsrc_right = ctx.glsl_frag_right.as_ref().unwrap();
     let options_v = glsl::Options::from(naga::ShaderStage::Vertex);
     let mut module_v: Module = glsl::Frontend::default().parse(&options_v, vsrc).map_err(|_| RhiError::Failed)?;
     let info_v = naga::valid::Validator::new(ValidationFlags::all(), Capabilities::all()).validate(&module_v).map_err(|_| RhiError::Failed)?;
@@ -195,7 +200,7 @@ pub fn vk_ctx_recreate(ctx: &mut VkCtx, width: u32, height: u32) -> Result<(), R
         let _ = ctx.device.device_wait_idle();
         destroy_swapchain_related(ctx);
         create_swapchain_related(ctx, width, height)?;
-        recreate_pipelines(ctx)?;
+        // recreate_pipelines(ctx)?; // Removed: Pipelines are now created via create_pipeline_glsl
         Ok(())
     }
 }
@@ -295,75 +300,21 @@ pub fn vk_ctx_init(hwnd: WindowHandle, width: u32, height: u32) -> Result<VkCtx,
 
         let plci = vk::PipelineLayoutCreateInfo::default();
         let pipeline_layout = device.create_pipeline_layout(&plci, None).map_err(|_| RhiError::Failed)?;
-        let vsrc = "#version 450\nlayout(location=0) in vec4 in_pos;\nvoid main(){ gl_Position = in_pos; }";
-        let fsrc_left = "#version 450\nlayout(location=0) out vec4 out_color;\nvoid main(){ out_color = vec4(0.25,0.75,0.25,1.0); }";
-        let fsrc_right = "#version 450\nlayout(location=0) out vec4 out_color;\nvoid main(){ out_color = vec4(0.25,0.25,0.75,1.0); }";
-        let mut parser = glsl::Frontend::default();
-        let options = glsl::Options::from(naga::ShaderStage::Vertex);
-        let mut module: Module = parser.parse(&options, vsrc).map_err(|_| RhiError::Failed)?;
-        let info = naga::valid::Validator::new(ValidationFlags::all(), Capabilities::all()).validate(&module).map_err(|_| RhiError::Failed)?;
-        let mut spv_writer = spv::Writer::new(&spv::Options::default()).map_err(|_| RhiError::Failed)?;
-        let mut vwords: Vec<u32> = Vec::new();
-        spv_writer.write(&module, &info, None, &None, &mut vwords).map_err(|_| RhiError::Failed)?;
-        let options_f = glsl::Options::from(naga::ShaderStage::Fragment);
-        let mut module_f_left: Module = glsl::Frontend::default().parse(&options_f, fsrc_left).map_err(|_| RhiError::Failed)?;
-        let info_f_left = naga::valid::Validator::new(ValidationFlags::all(), Capabilities::all()).validate(&module_f_left).map_err(|_| RhiError::Failed)?;
-        let mut spv_writer_f = spv::Writer::new(&spv::Options::default()).map_err(|_| RhiError::Failed)?;
-        let mut fwords_left: Vec<u32> = Vec::new();
-        spv_writer_f.write(&module_f_left, &info_f_left, None, &None, &mut fwords_left).map_err(|_| RhiError::Failed)?;
-        let mut module_f_right: Module = glsl::Frontend::default().parse(&options_f, fsrc_right).map_err(|_| RhiError::Failed)?;
-        let info_f_right = naga::valid::Validator::new(ValidationFlags::all(), Capabilities::all()).validate(&module_f_right).map_err(|_| RhiError::Failed)?;
-        let mut spv_writer_f2 = spv::Writer::new(&spv::Options::default()).map_err(|_| RhiError::Failed)?;
-        let mut fwords_right: Vec<u32> = Vec::new();
-        spv_writer_f2.write(&module_f_right, &info_f_right, None, &None, &mut fwords_right).map_err(|_| RhiError::Failed)?;
-        let vs = device.create_shader_module(&vk::ShaderModuleCreateInfo::default().code(vwords.as_slice()), None).map_err(|_| RhiError::Failed)?;
-        let fs_left = device.create_shader_module(&vk::ShaderModuleCreateInfo::default().code(fwords_left.as_slice()), None).map_err(|_| RhiError::Failed)?;
-        let fs_right = device.create_shader_module(&vk::ShaderModuleCreateInfo::default().code(fwords_right.as_slice()), None).map_err(|_| RhiError::Failed)?;
-        let entry_name = cstr("main");
-        let entry_cstr = entry_name.as_c_str();
-        let stages_left = [
-            vk::PipelineShaderStageCreateInfo::default().stage(vk::ShaderStageFlags::VERTEX).module(vs).name(entry_cstr),
-            vk::PipelineShaderStageCreateInfo::default().stage(vk::ShaderStageFlags::FRAGMENT).module(fs_left).name(entry_cstr),
-        ];
-        let stages_right = [
-            vk::PipelineShaderStageCreateInfo::default().stage(vk::ShaderStageFlags::VERTEX).module(vs).name(entry_cstr),
-            vk::PipelineShaderStageCreateInfo::default().stage(vk::ShaderStageFlags::FRAGMENT).module(fs_right).name(entry_cstr),
-        ];
-        let bind = vk::VertexInputBindingDescription::default().binding(0).stride(16).input_rate(vk::VertexInputRate::VERTEX);
-        let attr = vk::VertexInputAttributeDescription::default().location(0).binding(0).format(vk::Format::R32G32B32A32_SFLOAT).offset(0);
-        let binds = [bind];
-        let attrs = [attr];
-        let vi = vk::PipelineVertexInputStateCreateInfo::default().vertex_binding_descriptions(&binds).vertex_attribute_descriptions(&attrs);
-        let ia = vk::PipelineInputAssemblyStateCreateInfo::default().topology(vk::PrimitiveTopology::TRIANGLE_LIST);
-        let vp = vk::Viewport::default().x(0.0).y(0.0).width(extent.width as f32).height(extent.height as f32).min_depth(0.0).max_depth(1.0);
-        let sc = vk::Rect2D::default().offset(vk::Offset2D { x: 0, y: 0 }).extent(extent);
-        let vps_viewports = [vp];
-        let vps_scissors = [sc];
-        let vps = vk::PipelineViewportStateCreateInfo::default().viewports(&vps_viewports).scissors(&vps_scissors);
-        let rs = vk::PipelineRasterizationStateCreateInfo::default().polygon_mode(vk::PolygonMode::FILL).cull_mode(vk::CullModeFlags::NONE).front_face(vk::FrontFace::COUNTER_CLOCKWISE).line_width(1.0);
-        let ms = vk::PipelineMultisampleStateCreateInfo::default().rasterization_samples(vk::SampleCountFlags::TYPE_1);
-        let ds = vk::PipelineDepthStencilStateCreateInfo::default().depth_test_enable(true).depth_write_enable(true).depth_compare_op(vk::CompareOp::LESS_OR_EQUAL);
-        let blend_off = vk::PipelineColorBlendAttachmentState::default().blend_enable(false).color_write_mask(vk::ColorComponentFlags::R | vk::ColorComponentFlags::G | vk::ColorComponentFlags::B | vk::ColorComponentFlags::A);
-        let blend_none = vk::PipelineColorBlendAttachmentState::default().blend_enable(false).color_write_mask(vk::ColorComponentFlags::empty());
-        let cb_on_atts = [blend_off];
-        let cb_off_atts = [blend_none];
-        let cb_on = vk::PipelineColorBlendStateCreateInfo::default().attachments(&cb_on_atts);
-        let cb_off = vk::PipelineColorBlendStateCreateInfo::default().attachments(&cb_off_atts);
-        let pci_color_left = vk::GraphicsPipelineCreateInfo::default().stages(&stages_left).vertex_input_state(&vi).input_assembly_state(&ia).viewport_state(&vps).rasterization_state(&rs).multisample_state(&ms).depth_stencil_state(&ds).color_blend_state(&cb_on).layout(pipeline_layout).render_pass(renderpass).subpass(0);
-        let pci_color_right = vk::GraphicsPipelineCreateInfo::default().stages(&stages_right).vertex_input_state(&vi).input_assembly_state(&ia).viewport_state(&vps).rasterization_state(&rs).multisample_state(&ms).depth_stencil_state(&ds).color_blend_state(&cb_on).layout(pipeline_layout).render_pass(renderpass).subpass(0);
-        let pci_depth = vk::GraphicsPipelineCreateInfo::default().stages(&stages_left).vertex_input_state(&vi).input_assembly_state(&ia).viewport_state(&vps).rasterization_state(&rs).multisample_state(&ms).depth_stencil_state(&ds).color_blend_state(&cb_off).layout(pipeline_layout).render_pass(renderpass).subpass(0);
-        let pipelines = device.create_graphics_pipelines(vk::PipelineCache::null(), &[pci_color_left, pci_color_right, pci_depth], None).map_err(|_| RhiError::Failed)?;
-        let _ = write(stdout_handle(), b"[VK] Pipelines created\n");
-        let pipeline_color_left = pipelines[0];
-        let pipeline_color_right = pipelines[1];
-        let pipeline_depth = pipelines[2];
-        device.destroy_shader_module(vs, None);
-        device.destroy_shader_module(fs_left, None);
-        device.destroy_shader_module(fs_right, None);
         let qp_ci = vk::QueryPoolCreateInfo::default().query_type(vk::QueryType::OCCLUSION).query_count(2);
         let query_pool = device.create_query_pool(&qp_ci, None).map_err(|_| RhiError::Failed)?;
         let _ = write(stdout_handle(), b"[VK] QueryPool created\n");
 
-        Ok(VkCtx { entry, instance, surface_loader, surface, phys, device, queue_family: qf, queue, swapchain_loader, swapchain, format, extent, images, views, renderpass, pipeline_layout, pipeline_color_left, pipeline_color_right, pipeline_depth, framebuffers, cmd_pool, cmd, img_available, render_finished, in_flight, vbuf: vk::Buffer::null(), vmem: vk::DeviceMemory::null(), ibuf: vk::Buffer::null(), imem: vk::DeviceMemory::null(), index_count: 0, first_index: 0, second_first_index: 0, left_index_count: 0, right_index_count: 0, cpu_buf, cpu_mem, depth_img, depth_mem, depth_view, query_pool, prev_visible: [true,true], curr_img_index: 0 })
+        Ok(VkCtx { entry, instance, surface_loader, surface, phys, device, queue_family: qf, queue, swapchain_loader, swapchain, format, extent, images, views, renderpass, pipeline_layout, pipeline_color_left: vk::Pipeline::null(), pipeline_color_right: vk::Pipeline::null(), pipeline_depth: vk::Pipeline::null(), glsl_vertex: None, glsl_frag_left: None, glsl_frag_right: None, framebuffers, cmd_pool, cmd, img_available, render_finished, in_flight, vbuf: vk::Buffer::null(), vmem: vk::DeviceMemory::null(), ibuf: vk::Buffer::null(), imem: vk::DeviceMemory::null(), index_count: 0, first_index: 0, second_first_index: 0, left_index_count: 0, right_index_count: 0, cpu_buf, cpu_mem, depth_img, depth_mem, depth_view, query_pool, prev_visible: [true,true], curr_img_index: 0 })
+    }
+}
+
+
+
+pub fn vk_ctx_create_pipelines_glsl_pair(ctx: &mut VkCtx, vsrc: &str, fsrc_left: &str, fsrc_right: &str) -> Result<(), RhiError> {
+    unsafe {
+        ctx.glsl_vertex = Some(vsrc.to_string());
+        ctx.glsl_frag_left = Some(fsrc_left.to_string());
+        ctx.glsl_frag_right = Some(fsrc_right.to_string());
+        recreate_pipelines(ctx)
     }
 }

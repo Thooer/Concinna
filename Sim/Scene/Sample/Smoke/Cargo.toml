@@ -1,0 +1,14 @@
+[package]
+name = "sim_scene_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "sim_scene_smoke"
+path = "main.rs"
+
+[dependencies]
+sim_scene = { path = "C:/Users/25744/Desktop/Concinna/Sim/Scene" }
+sim_schema = { path = "C:/Users/25744/Desktop/Concinna/Sim/Schema" }
+cap_memory = { path = "../../../../Foundation/Cap/Memory" }
+cap_math = { path = "../../../../Foundation/Cap/Math" }

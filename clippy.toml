@@ -1,0 +1,12 @@
+disallowed-types = [
+    { path = "std::collections::HashMap", reason = "Use Cap.Containers::HashMap (Project Rule: No heavy std lib)" },
+    { path = "std::collections::HashSet", reason = "Use Cap.Containers::HashSet (Project Rule: No heavy std lib)" },
+    { path = "std::collections::BTreeMap", reason = "Use Cap.Containers::BTreeMap (Project Rule: No heavy std lib)" },
+    { path = "std::collections::BTreeSet", reason = "Use Cap.Containers::BTreeSet (Project Rule: No heavy std lib)" },
+    { path = "std::collections::LinkedList", reason = "Use Cap.Containers::LinkedList (Project Rule: No heavy std lib)" },
+    { path = "std::vec::Vec", reason = "Use Cap.Containers::Vector (Project Rule: No heavy std lib)" },
+    { path = "std::string::String", reason = "Use Cap.Containers::CapString (Project Rule: No heavy std lib)" },
+    { path = "std::sync::Mutex", reason = "Use Prm.Sync or Prm.Threading primitives (Warning)" },
+    { path = "std::sync::RwLock", reason = "Use Prm.Sync or Prm.Threading primitives (Warning)" },
+    { path = "std::thread::spawn", reason = "Use Prm.Threading (Warning)" }
+]

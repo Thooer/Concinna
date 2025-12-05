@@ -1,0 +1,14 @@
+[package]
+name = "sim_component_smoke"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "sim_component_smoke"
+path = "main.rs"
+
+[dependencies]
+sim_component = { path = "../../" }
+cap_memory = { path = "../../../../Foundation/Cap/Memory" }
+cap_math = { path = "../../../../Foundation/Cap/Math" }
+cap_containers = { path = "../../../../Foundation/Cap/Containers" }

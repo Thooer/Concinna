@@ -9,4 +9,4 @@ path = "API/lib.rs"
 
 [dependencies]
 prm_file = { path = "../../Prm/File" }
-
+sys_rhi = { path = "../RHI" }

@@ -1,0 +1,14 @@
+[package]
+name = "sim_component"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sim_component"
+path = "API/lib.rs"
+
+[dependencies]
+cap_math = { path = "../../Foundation/Cap/Math" }
+cap_containers = { path = "../../Foundation/Cap/Containers" }
+cap_memory = { path = "../../Foundation/Cap/Memory" }
+lang_derive = { path = "../../Foundation/Derive" }

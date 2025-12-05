@@ -8,3 +8,6 @@
 - .mesh
 - .lua
 - .wat
+- .glsl
+- .vert
+- .frag

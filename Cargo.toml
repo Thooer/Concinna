@@ -16,11 +16,23 @@ members = [
     "Foundation/Sys/Scripting",
     "Foundation/Sys/RHI",
     "Foundation/Sys/RenderGraph",
+    "Foundation/Sys/Memory",
     "Engine/Renderer",
     "Foundation/Sys/Resource",
     "Foundation/Sys/Task/Sample/Smoke",
     "Foundation/Sys/Job/Sample/Smoke",
     "Foundation/Cap/Algorithms/Sample/Bench",
     "Engine/App",
+    "Sim/Schema",
+    "Sim/Component",
+    "Sim/Scene",
+    "Sim/Component/Sample/Smoke",
+    "Sim/Scene/Sample/Smoke",
 ]
 resolver = "2"
+
+[workspace.lints.rust]
+# unsafe_code = "deny" # Configured per module
+
+[workspace.lints.clippy]
+disallowed_types = "warn"

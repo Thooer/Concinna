@@ -8,6 +8,7 @@ mod queue; pub use queue::*;
 mod resource; pub use resource::*;
 mod pipeline; pub use pipeline::*;
 mod sync; pub use sync::*;
+mod packet; pub use packet::*;
 #[path = "../Backend/mod.rs"]
 mod backend;
 

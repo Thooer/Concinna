@@ -76,7 +76,7 @@ pub fn raster_model_rgba(width: u32, height: u32, model: &Model) -> Vec<u8> {
     img
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Mat4(pub [f32;16]);
 
 fn dot3(a: [f32;3], b: [f32;3]) -> f32 { a[0]*b[0] + a[1]*b[1] + a[2]*b[2] }
@@ -196,6 +196,61 @@ pub fn raster_cubes_rgba(width: u32, height: u32, model: &Model, angle_rad: f32)
                             img[idx+0] = colors[ci][2];
                             img[idx+1] = colors[ci][1];
                             img[idx+2] = colors[ci][0];
+                            img[idx+3] = 255;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    img
+}
+
+pub fn raster_instances_rgba(width: u32, height: u32, model: &Model, transforms: &[Mat4], view: Mat4, proj: Mat4) -> Vec<u8> {
+    let w = width as i32; let h = height as i32; let pitch = (w as usize) * 4;
+    let mut img = vec![32u8; (pitch * h as usize)];
+    for y in 0..h as usize { let row = &mut img[y*pitch..(y+1)*pitch]; for x in 0..w as usize { let o = x*4; row[o+3]=255; } }
+    let mut depth = vec![1.0f32; (w*h) as usize];
+    let vp = mul(proj, view);
+    let colors: [[u8;3];6] = [[64,192,64],[64,64,192],[192,64,64],[192,192,64],[64,192,192],[192,64,192]];
+    for (ci, t) in transforms.iter().enumerate() {
+        let mvp = mul(vp, *t);
+        for tri in &model.indices {
+            let a4 = transform_point(mvp, model.vertices[tri[0] as usize]);
+            let b4 = transform_point(mvp, model.vertices[tri[1] as usize]);
+            let c4 = transform_point(mvp, model.vertices[tri[2] as usize]);
+            if a4[3]==0.0 || b4[3]==0.0 || c4[3]==0.0 { continue; }
+            let ax = a4[0]/a4[3]; let ay = a4[1]/a4[3]; let az = a4[2]/a4[3];
+            let bx = b4[0]/b4[3]; let by = b4[1]/b4[3]; let bz = b4[2]/b4[3];
+            let cx = c4[0]/c4[3]; let cy = c4[1]/c4[3]; let cz = c4[2]/c4[3];
+            if !(ax>=-1.0 && ax<=1.0 && ay>=-1.0 && ay<=1.0) && !(bx>=-1.0 && bx<=1.0 && by>=-1.0 && by<=1.0) && !(cx>=-1.0 && cx<=1.0 && cy>=-1.0 && cy<=1.0) { continue; }
+            let sx = |x: f32| ((x*0.5+0.5)*(w as f32)) as i32;
+            let sy = |y: f32| ((-y*0.5+0.5)*(h as f32)) as i32;
+            let dax = sx(ax); let day = sy(ay); let dbx = sx(bx); let dby = sy(by); let dcx = sx(cx); let dcy = sy(cy);
+            let min_x = core::cmp::max(0, core::cmp::min(dax, core::cmp::min(dbx, dcx)));
+            let max_x = core::cmp::min(w-1, core::cmp::max(dax, core::cmp::max(dbx, dcx)));
+            let min_y = core::cmp::max(0, core::cmp::min(day, core::cmp::min(dby, dcy)));
+            let max_y = core::cmp::min(h-1, core::cmp::max(day, core::cmp::max(dby, dcy)));
+            let area = (dbx - dax) * (dcy - day) - (dcx - dax) * (dby - day);
+            if area <= 0 { continue; }
+            let inv_area = 1.0f32 / (area as f32);
+            let col = colors[ci % colors.len()];
+            for y in min_y..=max_y {
+                for x in min_x..=max_x {
+                    let w0 = (dbx - dax) * (y - day) - (dby - day) * (x - dax);
+                    let w1 = (dcx - dbx) * (y - dby) - (dcy - dby) * (x - dbx);
+                    let w2 = (dax - dcx) * (y - dcy) - (day - dcy) * (x - dcx);
+                    if w0>=0 && w1>=0 && w2>=0 {
+                        let b0 = w0 as f32 * inv_area; let b1 = w1 as f32 * inv_area; let b2 = w2 as f32 * inv_area;
+                        let z_ndc = az*b0 + bz*b1 + cz*b2;
+                        let z = z_ndc * 0.5 + 0.5;
+                        let idx = (y as usize)*pitch + (x as usize)*4;
+                        let di = (y as usize)*(w as usize) + (x as usize);
+                        if z < depth[di] {
+                            depth[di] = z;
+                            img[idx+0] = col[2];
+                            img[idx+1] = col[1];
+                            img[idx+2] = col[0];
                             img[idx+3] = 255;
                         }
                     }

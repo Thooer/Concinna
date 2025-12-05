@@ -1,0 +1,9 @@
+[package]
+name = "sim_schema"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sim_schema"
+path = "API/lib.rs"
+

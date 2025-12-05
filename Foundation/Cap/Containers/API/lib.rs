@@ -68,7 +68,7 @@ impl<'a, T: Copy> SoAColumn<'a, T> for crate::Vector<'a, T> {
         Self::push(self, value)
     }
     fn len(&self) -> usize { Self::len(self) }
-    fn get(&self, index: usize) -> Option<T> { Self::get(self, index) }
+    fn get(&self, index: usize) -> Option<T> { Self::get(self, index).copied() }
     fn as_ptr(&self) -> *const T { Self::as_ptr(self) }
 }
 

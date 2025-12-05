@@ -1,0 +1,16 @@
+[package]
+name = "sim_scene"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sim_scene"
+path = "API/lib.rs"
+
+[dependencies]
+cap_containers = { path = "../../Foundation/Cap/Containers" }
+cap_memory = { path = "../../Foundation/Cap/Memory" }
+cap_math = { path = "../../Foundation/Cap/Math" }
+sim_schema = { path = "../Schema" }
+sim_component = { path = "../Component" }
+sys_ir = { path = "../../Foundation/Sys/IR" }

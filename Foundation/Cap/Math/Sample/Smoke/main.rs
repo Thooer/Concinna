@@ -25,6 +25,58 @@ fn test_precision() {
     println!("precision normalize_max_err={:.6} mat_affine_inv_err={:.6}", max_err, ortho_err);
 }
 
+fn test_matmul() {
+    println!("\nTesting matrix multiplication...");
+    
+    // 创建两个简单的矩阵
+    let m1 = Mat4::from_trs(
+        Vec3::new(1.0, 2.0, 3.0),
+        Quat::identity(),
+        Vec3::new(2.0, 2.0, 2.0)
+    );
+    
+    let m2 = Mat4::from_trs(
+        Vec3::new(4.0, 5.0, 6.0),
+        Quat::identity(),
+        Vec3::new(0.5, 0.5, 0.5)
+    );
+    
+    // 使用优化后的矩阵乘法计算结果
+    let result = m1.mul(m2);
+    
+    // 验证结果是否正确
+    let expected = Mat4::from_trs(
+        Vec3::new(6.0, 9.0, 12.0),
+        Quat::identity(),
+        Vec3::new(1.0, 1.0, 1.0)
+    );
+    
+    // 检查结果是否接近预期
+    let mut all_close = true;
+    for i in 0..4 {
+        for j in 0..4 {
+            if (result.rows[i][j] - expected.rows[i][j]).abs() > 1e-5 {
+                all_close = false;
+                break;
+            }
+        }
+    }
+    
+    println!("Matrix multiplication result is correct: {}", all_close);
+    
+    // 运行性能测试
+    let n = 1_000_000;
+    let start = Instant::now();
+    
+    for _ in 0..n {
+        let _ = m1.mul(m2);
+    }
+    
+    let duration = start.elapsed();
+    println!("Performance: {} matrix multiplications in {:?} ({:.2} million/s)",
+             n, duration, n as f64 / duration.as_secs_f64() / 1_000_000.0);
+}
+
 fn test_performance() {
     let n = 8_000_000usize;
     let mut a = vec![[0.0f32;4]; n];
@@ -63,6 +115,7 @@ fn test_performance() {
 
 fn main() {
     test_precision();
+    test_matmul();
     test_performance();
 
     let world = vec![DVec3::new(1e6, 2e6, -3e6), DVec3::new(1.0, 2.0, 3.0)];

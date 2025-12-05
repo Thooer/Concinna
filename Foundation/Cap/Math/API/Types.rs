@@ -1,3 +1,5 @@
+use prm_simd::*;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec2 { pub x: f32, pub y: f32 }
 
@@ -79,7 +81,37 @@ impl Mat4 {
     pub fn identity() -> Self { Self { rows: [[1.0,0.0,0.0,0.0],[0.0,1.0,0.0,0.0],[0.0,0.0,1.0,0.0],[0.0,0.0,0.0,1.0]] } }
     pub fn mul(self, o: Self) -> Self {
         let mut r = [[0.0;4];4];
-        for i in 0..4 { for j in 0..4 { r[i][j] = self.rows[i][0]*o.rows[0][j] + self.rows[i][1]*o.rows[1][j] + self.rows[i][2]*o.rows[2][j] + self.rows[i][3]*o.rows[3][j]; } }
+        
+        unsafe {
+            // 遍历第一个矩阵的每一行
+            for i in 0..4 {
+                // 加载第一个矩阵的当前行
+                let a_row = F32x4 { lanes: self.rows[i] };
+                
+                // 加载第二个矩阵的四行
+                let b_row0 = F32x4 { lanes: o.rows[0] };
+                let b_row1 = F32x4 { lanes: o.rows[1] };
+                let b_row2 = F32x4 { lanes: o.rows[2] };
+                let b_row3 = F32x4 { lanes: o.rows[3] };
+                
+                // 计算结果行的第一个元素
+                let a0 = F32x4 { lanes: [a_row.lanes[0], a_row.lanes[0], a_row.lanes[0], a_row.lanes[0]] };
+                let t0 = mul(a0, b_row0);
+                
+                let a1 = F32x4 { lanes: [a_row.lanes[1], a_row.lanes[1], a_row.lanes[1], a_row.lanes[1]] };
+                let t1 = fma(a1, b_row1, t0);
+                
+                let a2 = F32x4 { lanes: [a_row.lanes[2], a_row.lanes[2], a_row.lanes[2], a_row.lanes[2]] };
+                let t2 = fma(a2, b_row2, t1);
+                
+                let a3 = F32x4 { lanes: [a_row.lanes[3], a_row.lanes[3], a_row.lanes[3], a_row.lanes[3]] };
+                let res = fma(a3, b_row3, t2);
+                
+                // 存储结果行
+                store(r[i].as_mut_ptr(), res);
+            }
+        }
+        
         Self { rows: r }
     }
     pub fn transpose(self) -> Self {

@@ -2,6 +2,7 @@ use prm_window::WindowHandle;
 use prm_wsi::{create_cpu_present, cpu_get_buffer, cpu_get_pitch, cpu_present, CpuPresentHandle};
 use crate::{RhiError};
 use crate::resource::{Model, raster_cubes_rgba};
+use crate::resource::{Mat4, raster_instances_rgba};
 
 pub struct CpuCtx {
     present: CpuPresentHandle,
@@ -20,6 +21,12 @@ pub fn cpu_ctx_upload_model(_ctx: &mut CpuCtx, _m: &Model) -> Result<(), RhiErro
 pub fn cpu_ctx_update_cubes(ctx: &mut CpuCtx, m: &Model, angle: f32, width: u32, height: u32) -> Result<(), RhiError> {
     if width != ctx.width || height != ctx.height { ctx.width = width; ctx.height = height; ctx.pixels.resize((width as usize)*(height as usize)*4, 0); }
     ctx.pixels = raster_cubes_rgba(width, height, m, angle);
+    Ok(())
+}
+
+pub fn cpu_ctx_update_instances(ctx: &mut CpuCtx, m: &Model, transforms: &[Mat4], view: Mat4, proj: Mat4, width: u32, height: u32) -> Result<(), RhiError> {
+    if width != ctx.width || height != ctx.height { ctx.width = width; ctx.height = height; ctx.pixels.resize((width as usize)*(height as usize)*4, 0); }
+    ctx.pixels = raster_instances_rgba(width, height, m, transforms, view, proj);
     Ok(())
 }
 

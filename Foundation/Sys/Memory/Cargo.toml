@@ -1,0 +1,11 @@
+[package]
+name = "sys_memory"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sys_memory"
+path = "API/lib.rs"
+
+[dependencies]
+cap_memory = { path = "../../Cap/Memory" }

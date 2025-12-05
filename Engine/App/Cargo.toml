@@ -4,13 +4,21 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+sys_vfs = { path = "../../Foundation/Sys/VFS" }
 prm_file = { path = "../../Foundation/Prm/File" }
 prm_io = { path = "../../Foundation/Prm/IO" }
 prm_time = { path = "../../Foundation/Prm/Time" }
 prm_window = { path = "../../Foundation/Prm/Window" }
 cap_path = { path = "../../Foundation/Cap/Path" }
 cap_memory = { path = "../../Foundation/Cap/Memory" }
-sys_vfs = { path = "../../Foundation/Sys/VFS" }
-sys_scripting = { path = "../../Foundation/Sys/Scripting" }
+cap_containers = { path = "../../Foundation/Cap/Containers" }
 sys_rhi = { path = "../../Foundation/Sys/RHI" }
 sys_rendergraph = { path = "../../Foundation/Sys/RenderGraph" }
+sys_scripting = { path = "../../Foundation/Sys/Scripting" }
+sys_memory = { path = "../../Foundation/Sys/Memory" }
+cap_math = { path = "../../Foundation/Cap/Math" }
+sim_scene = { path = "../../Sim/Scene" }
+sim_schema = { path = "../../Sim/Schema" }
+sim_component = { path = "../../Sim/Component" }
+sys_ir = { path = "../../Foundation/Sys/IR" }
+mlua = { version = "0.9", features = ["lua54", "vendored"] }
